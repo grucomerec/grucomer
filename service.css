@@ -1,0 +1,67 @@
+/* Navar principal */
+.hero {
+    background: linear-gradient(rgba(0, 123, 255, 0.8), rgba(0, 86, 179, 0.9)),
+    url("img/encacorp.jpg") center/cover no-repeat;
+    height: 100vh;
+    color: white;
+    display: flex;
+    align-items: center;
+    }
+    h1.display-3{
+    text-align: center;
+    margin-top: 60px;
+    color: black;
+}
+p.lead{
+    text-align: center;
+    font-style: italic;
+}
+/* Navegar a un punto exacto de la página */
+#service {
+  scroll-margin-top: 80px; /* ajusta según la altura de tu header */
+}
+/* ANIMACIONES */
+/* Servicios */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+/* Background */
+.btn {
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+.hero h1 {
+  animation: fadeInDown 1s ease forwards;
+}
+.hero p {
+  animation: fadeInUp 1.5s ease forwards;
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Imagenes */
+.img-fluid {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.img-fluid:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+/* Elimina las viñetas */
+ul{
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}

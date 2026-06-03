@@ -1,0 +1,43 @@
+/* Ruteo de colores */
+:root {
+  --bs-primary: #004080;   /* Azul corporativo */
+  --bs-secondary: #ff6600; /* Naranja de acento */
+  --bs-success: #28a745;   /* Verde más intenso */
+  --bs-danger: #e63946;    /* Rojo personalizado */
+  --bs-dark: #1a1a1a;      /* Gris oscuro */
+}
+/* Eliminar las viñetas y los numeros */
+ol{
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+/* Fondo del sistema */
+body{
+    background: url("img/encacorp.jpg") no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+}
+body::before{
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,64,128,0.7), rgba(255,255,255,0.9));
+    z-index: -1;
+}
+/* Navegar a un lugar exacto de la página */
+#curbas,
+#forava,
+certec{
+  scroll-margin-top: 80px; 
+}
+#whats{
+  background-color: #28a745;
+}
+/* Botón de volver */
+.btn-volver {
+  position: fixed;
+  top: 65px;
+  left: 20px;
+  z-index: 1000;
+}
