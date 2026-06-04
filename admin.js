@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Verificar sesión activa en Supabase Auth
   const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
   if (authError || !user) { 
-    window.location.href = "index.html"; 
+    window.location.href = "index_a_v.html"; 
     return; 
   }
 
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!perfilAdmin || perfilAdmin.rol !== 'admin') { 
     await supabaseClient.auth.signOut(); 
-    window.location.href = "index.html"; 
+    window.location.href = "index_a_v .html"; 
     return; 
   }
 
