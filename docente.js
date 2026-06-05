@@ -348,12 +348,18 @@ async function cargarPlanillaAsistencia() {
     tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Cargando nómina...</td></tr>`;
 
     try {
-        // 1. Conseguir la nómina idéntica de alumnos aprobados
+        // 1. CORRECCIÓN CRÍTICA: Apuntar explícitamente a la llave foránea 'perfil_id'
         const { data: inscritos, error: errInsc } = await supabase
             .from('inscripciones')
-            .select('perfil_id, perfiles(cedula, nombre_apellido)')
+            .select(`
+                perfil_id,
+                perfiles!perfil_id (
+                    cedula,
+                    nombre_apellido
+                )
+            `)
             .eq('curso_id', cursoActivoId)
-            .eq('estado', 'aprobado');
+            .eq('estado', 'aprobated'); // Asegúrate si en tu BD guardas 'aprobado' o 'aprobated'
 
         if (errInsc) throw errInsc;
 
@@ -382,12 +388,12 @@ async function cargarPlanillaAsistencia() {
         
         // 3. Renderizar las filas con interruptores automatizados
         inscritos.forEach(item => {
-            const alumno = item.perfiles;
+            // CORRECCIÓN: Extraer correctamente el objeto de perfiles mapeado explícitamente
+            const alumno = item.perfiles; 
             if (!alumno) return;
 
             const estadoReal = mapaAsistencias[item.perfil_id];
             
-            // Si no hay datos guardados viene por defecto "presente" (true)
             const estaAsistiendo = estadoReal ? (estadoReal === 'presente' || estadoReal === 'atraso') : true;
             const novedadSeleccionada = estadoReal ? estadoReal : 'presente';
 
@@ -412,7 +418,7 @@ async function cargarPlanillaAsistencia() {
             tbody.appendChild(tr);
         });
 
-        // Evento reactivo: si cambia el switch, se actualiza automáticamente el selector
+        // Evento reactivo
         tbody.querySelectorAll(".check-asistencia").forEach(sw => {
             sw.addEventListener("change", (e) => {
                 const select = tbody.querySelector(`select[data-perfil="${sw.dataset.perfil}"]`);
