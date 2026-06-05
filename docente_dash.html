@@ -129,75 +129,61 @@
       </div>
 
       <div id="vista-alumnos" class="d-none">
-          <div class="card shadow-sm border-0">
-              <div class="card-body p-4">
-                  <div class="row mb-3 justify-content-end">
-                      <div class="col-md-5 col-sm-8">
-                          <div class="input-group">
-                              <span class="input-group-text bg-light text-muted border-end-0">
-                                  <i class="bi bi-search"></i>
-                              </span>
-                              <input type="text" 
-                                     id="input-busqueda-alumno" 
-                                     class="form-control border-start-0" 
-                                     placeholder="Buscar por nombre o cédula..."
-                                     onkeyup="filtrarAlumnosEnPantalla()">
-                          </div>
-                      </div>
-                  </div>
-
-                  <div class="table-responsive">
-                      <table class="table table-hover align-middle mb-0">
-                          <thead class="table-light text-secondary">
-                              <tr>
-                                  <th>Nombres y Apellidos</th>
-                                  <th>Cédula</th>
-                                  <th>Celular</th>
-                                  <th>Correo Electrónico</th>
-                              </tr>
-                          </thead>
-                          <tbody id="tabla-alumnos-body"></tbody>
-                      </table>
-                  </div>
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <div class="row mb-3 justify-content-end">
+              <div class="col-md-5 col-sm-8">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted border-end-0">
+                    <i class="bi bi-search"></i>
+                  </span>
+                  <input type="text" id="input-busqueda-alumno" class="form-control border-start-0" placeholder="Buscar por nombre o cédula..." onkeyup="filtrarAlumnosEnPantalla()">
+                </div>
               </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary">
+                  <tr>
+                    <th>Nombres y Apellidos</th>
+                    <th>Cédula</th>
+                    <th>Celular</th>
+                    <th>Correo Electrónico</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-alumnos-body"></tbody>
+              </table>
+            </div>
           </div>
+        </div>
       </div>
 
       <div id="vista-asistencias" class="d-none">
         <div class="card shadow-sm border-0 mb-4">
           <div class="card-header bg-white border-0 py-3 d-flex flex-wrap align-items-center justify-content-between">
             <div>
-              <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-check me-2 text-primary"></i>Planilla Diario de Control</h5>
-              <small class="text-muted">Seleccione la fecha correspondiente para registrar la asistencia.</small>
+              <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-check me-2 text-primary"></i>Planilla de Asistencia</h5>
             </div>
-            <div class="d-flex gap-2 mt-2 mt-md-0">
+            <div class="d-flex gap-2">
               <input type="date" id="asistencia-fecha-filtro" class="form-control form-control-sm" style="width: 160px;">
-              <button class="btn btn-sm btn-outline-success fw-bold" id="btn-exportar-asistencias">
-                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar Curso
-              </button>
+              <button class="btn btn-sm btn-outline-success fw-bold" id="btn-exportar-asistencias">Exportar CSV</button>
             </div>
           </div>
-          
           <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-secondary">
-                  <tr>
-                    <th class="ps-4">Nombres y Apellidos</th>
-                    <th>Cédula</th>
-                    <th class="text-center">Estado Rápido (Asistió)</th>
-                    <th class="text-center">Novedad Detallada</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-asistencias-body"></tbody>
-              </table>
-            </div>
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-secondary">
+                <tr>
+                  <th class="ps-4">Estudiante</th>
+                  <th>Cédula</th>
+                  <th class="text-center">Asistió</th>
+                  <th class="text-center">Novedad</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-asistencias-body"></tbody>
+            </table>
           </div>
-          
-          <div class="card-footer bg-white border-0 py-3 text-end">
-            <button class="btn btn-primary fw-bold px-4" id="btn-guardar-asistencia">
-              <i class="bi bi-cloud-arrow-up-fill me-1"></i> Guardar Asistencia del Día
-            </button>
+          <div class="card-footer bg-white text-end py-3">
+            <button class="btn btn-primary btn-sm fw-bold px-4" id="btn-guardar-asistencia">Guardar Asistencia</button>
           </div>
         </div>
       </div>
@@ -207,48 +193,41 @@
           <div class="col-md-4 mb-4">
             <div class="card shadow-sm border-0">
               <div class="card-header bg-dark text-white fw-bold py-2">
-                <i class="bi bi-chat-right-quote me-1"></i> Aperturar Nuevo Foro
+                <i class="bi bi-chat-right-quote me-1"></i> Aperturar Foro
               </div>
               <div class="card-body">
                 <form id="form-foro">
                   <div class="mb-3">
-                    <label class="form-label small fw-semibold">Título del Foro:</label>
-                    <input type="text" id="foro-titulo" class="form-control form-control-sm" placeholder="Ej: Debate sobre Sistemas de Puesta a Tierra" required>
+                    <label class="form-label small fw-semibold">Título:</label>
+                    <input type="text" id="foro-titulo" class="form-control form-control-sm" required>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label small fw-semibold">Planteamiento / Pregunta base:</label>
-                    <textarea id="foro-descripcion" class="form-control form-control-sm" rows="4" placeholder="Escribe la consigna del debate o la pregunta detonante para los estudiantes..." required></textarea>
+                    <label class="form-label small fw-semibold">Planteamiento:</label>
+                    <textarea id="foro-descripcion" class="form-control form-control-sm" rows="3" required></textarea>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label small fw-semibold">Fecha Límite de Participación:</label>
+                    <label class="form-label small fw-semibold">Fecha Límite:</label>
                     <input type="date" id="foro-fecha-limite" class="form-control form-control-sm" required>
                   </div>
-                  <button type="submit" class="btn btn-sm btn-dark w-100 fw-bold">
-                    <i class="bi bi-journal-plus"></i> Publicar Tema de Foro
-                  </button>
+                  <button type="submit" class="btn btn-sm btn-dark w-100 fw-bold">Publicar Foro</button>
                 </form>
               </div>
             </div>
           </div>
-
           <div class="col-md-8 mb-4">
             <div class="card shadow-sm border-0">
               <div class="card-body">
-                <h5 class="fw-bold text-dark border-bottom pb-2">Hilos de Discusión en el Curso</h5>
+                <h5 class="fw-bold text-dark border-bottom pb-2">Hilos de Discusión</h5>
                 <div class="table-responsive">
                   <table class="table table-hover align-middle">
                     <thead class="table-light text-secondary small text-uppercase">
                       <tr>
-                        <th style="width: 45%;">Tema / Foro</th>
-                        <th style="width: 25%;">Disponible Hasta</th>
-                        <th style="width: 30%;" class="text-end">Acciones</th>
+                        <th>Foro</th>
+                        <th>Fecha Límite</th>
+                        <th class="text-end">Acciones</th>
                       </tr>
                     </thead>
-                    <tbody id="tabla-foros-body">
-                      <tr>
-                        <td colspan="3" class="text-center py-3 text-muted">No hay foros creados.</td>
-                      </tr>
-                    </tbody>
+                    <tbody id="tabla-foros-body"></tbody>
                   </table>
                 </div>
               </div>
@@ -266,27 +245,19 @@
 
   </div>
 
-  <div class="modal fade" id="modalRespuestasForo" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalRespuestasLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header bg-light">
-          <div id="modal-foro-encabezado">
-            <h5 class="modal-title fw-bold text-dark" id="modalRespuestasLabel">Cargando Foro...</h5>
-            <small class="text-muted d-block" id="modal-foro-fecha"></small>
-          </div>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="window.cerrarModalForo()"></button>
+  <div class="modal fade" id="modalRespuestasForo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="modalRespuestasLabel">Respuestas del Foro</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="window.cerrarModalForo()"></button>
         </div>
-        <div class="modal-body bg-light-subtle">
-          <div class="p-3 bg-white rounded border border-light mb-3 shadow-sm">
-             <h6 class="fw-bold text-primary mb-1"><i class="bi bi-question-circle-fill me-1"></i> Planteamiento Docente:</h6>
-             <p id="modal-foro-descripcion" class="text-muted small mb-0 style-justify"></p>
+        <div class="modal-body bg-light">
+          <div class="p-3 bg-white rounded border mb-3">
+            <h6 class="fw-bold text-primary">Planteamiento:</h6>
+            <p id="modal-foro-descripcion" class="small text-muted mb-0"></p>
           </div>
-          
-          <h6 class="fw-bold text-dark mb-2 px-1"><i class="bi bi-chat-left-text me-1"></i> Participaciones registradas:</h6>
           <div id="contenedor-comentarios-foro" class="d-flex flex-column gap-2"></div>
-        </div>
-        <div class="modal-footer bg-white">
-          <button type="button" class="btn btn-sm btn-secondary fw-bold" data-bs-dismiss="modal" onclick="window.cerrarModalForo()">Cerrar Visualizador</button>
         </div>
       </div>
     </div>
