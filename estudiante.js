@@ -400,7 +400,7 @@ async function cargarTareasEstudiante() {
                 }
 
                 // El estudiante puede re-confirmar o ver el formulario si lo requiere
-                btnAccion = `<a href="${t.url_formulario_google}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 w-100" style="font-size:0.8rem;"><i class="bi bi-eye"></i> Ver Formulario</a>`;
+                btnAccion = `<a href="${t.url_formulario_google}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 w-100" style="font-size:0.8rem;"><i class="bi bi-eye"></i> Entregar Tarea</a>`;
             }
 
             const tr = document.createElement("tr");
