@@ -44,24 +44,29 @@
     <div id="zona-trabajo-docente" class="d-none">
       
       <ul class="nav nav-tabs mb-4" id="pestañasCurso" role="tablist">
-        <li class="nav-item" role="presentation">
+        <li class="nav-item">
           <button class="nav-link active fw-bold" id="tab-recursos" onclick="window.cambiarSubVista('recursos')">
             <i class="bi bi-folder-symlink me-1"></i> Recursos Académicos
           </button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item">
           <button class="nav-link fw-bold" id="tab-alumnos" onclick="window.cambiarSubVista('alumnos')">
             <i class="bi bi-people-fill me-1"></i> Alumnos Matriculados
           </button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item">
           <button class="nav-link fw-bold" id="tab-asistencias" onclick="window.cambiarSubVista('asistencias')">
             <i class="bi bi-calendar-check me-1"></i> Control de Asistencia
           </button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item">
           <button class="nav-link fw-bold" id="tab-foros" onclick="window.cambiarSubVista('foros')">
             <i class="bi bi-chat-square-text-fill me-1"></i> Foros de Debate
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-tareas" onclick="window.cambiarSubVista('tareas')">
+            <i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Tareas y Calificaciones
           </button>
         </li>
       </ul>
@@ -236,6 +241,68 @@
         </div>
       </div>
 
+      <div id="vista-tareas" class="d-none">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-success text-white fw-bold py-2">
+                <i class="bi bi-file-earmark-plus me-1"></i> Asignar Nueva Tarea
+              </div>
+              <div class="card-body">
+                <form id="form-tarea">
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Título de la Tarea:</label>
+                    <input type="text" id="tarea-titulo" class="form-control form-control-sm" placeholder="Ej: Laboratorio de Circuitos 1" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Instrucciones / Rúbrica:</label>
+                    <textarea id="tarea-descripcion" class="form-control form-control-sm" rows="3" placeholder="Describe los requisitos de la entrega..." required></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Enlace de Google Forms (Para este Curso):</label>
+                    <input type="url" id="tarea-google-url" class="form-control form-control-sm" placeholder="https://docs.google.com/forms/d/e/..." required>
+                    <div class="form-text text-muted" style="font-size:11px;">Pega el enlace de recolección generado en tu Drive para este curso.</div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6 mb-3">
+                      <label class="form-label small fw-semibold">Nota Máxima:</label>
+                      <input type="number" id="tarea-nota-max" class="form-control form-control-sm" value="10" min="1" max="100" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                      <label class="form-label small fw-semibold">Fecha Límite:</label>
+                      <input type="date" id="tarea-fecha-limite" class="form-control form-control-sm" required>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-sm btn-success w-100 fw-bold">
+                    <i class="bi bi-send-check"></i> Publicar Actividad
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+                <h5 class="fw-bold text-dark border-bottom pb-2">Tareas Enviadas al Curso</h5>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-light text-secondary small text-uppercase">
+                      <tr>
+                        <th>Actividad</th>
+                        <th>Fecha de Cierre</th>
+                        <th class="text-end">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabla-tareas-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <div id="mensaje-espera-curso" class="text-center py-5 text-muted">
@@ -258,6 +325,42 @@
             <p id="modal-foro-descripcion" class="small text-muted mb-0"></p>
           </div>
           <div id="contenedor-comentarios-foro" class="d-flex flex-column gap-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalRevisionTareas" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <div>
+            <h5 class="modal-title fw-bold text-dark" id="modalRevisionLabel">Calificación de Entregas</h5>
+            <span class="text-muted small">Verifica los envíos en tu Google Drive y registra las notas correspondientes aquí.</span>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="window.cerrarModalRevision()"></button>
+        </div>
+        <div class="modal-body bg-light-subtle">
+          <div class="table-responsive">
+            <table class="table table-bordered bg-white align-middle shadow-sm mb-0">
+              <thead class="table-light text-secondary small text-uppercase">
+                <tr>
+                  <th style="width: 25%;">Estudiante</th>
+                  <th style="width: 15%;">Marcación en Aula</th>
+                  <th style="width: 25%;">Nota de Confirmación</th>
+                  <th style="width: 15%;">Calificación</th>
+                  <th style="width: 20%;">Retroalimentación / Feedback</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-revision-entregas-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer bg-white">
+          <button type="button" class="btn btn-sm btn-primary fw-bold px-4" id="btn-guardar-calificaciones" onclick="window.guardarNotasTareas()">
+            <i class="bi bi-cloud-check-fill me-1"></i> Sincronizar Calificaciones
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" onclick="window.cerrarModalRevision()">Cerrar</button>
         </div>
       </div>
     </div>

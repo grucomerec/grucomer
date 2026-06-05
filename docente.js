@@ -6,6 +6,8 @@ let vistaActual = 'recursos';
 let alumnosCursoOriginal = [];
 let nominaAlumnosAsistencia = []; // Almacena los alumnos activos de asistencia
 let modalForoInstance = null;     // Instancia del modal de Bootstrap para respuestas
+let modalRevisionInstance = null; // Instancia del modal de Bootstrap para tareas
+let tareaActivaSeleccionadaId = null; // ID de la tarea bajo revisión actual
 
 // =========================================================================
 // GESTOR DE EVENTOS INICIALES (DOM CONTENT LOADED)
@@ -45,6 +47,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const formForo = document.getElementById("form-foro");
     if (formForo) {
         formForo.addEventListener("submit", guardarForo);
+    }
+
+    // Inicialización del formulario de Tareas (Nuevo Módulo)
+    const formTarea = document.getElementById("form-tarea");
+    if (formTarea) {
+        formTarea.addEventListener("submit", guardarTarea);
     }
 });
 
@@ -126,25 +134,17 @@ window.cambiarCursoActivo = function(idCurso) {
 window.cambiarSubVista = function(vista) {
     vistaActual = vista;
     
-    const tabRecursos = document.getElementById("tab-recursos");
-    const tabAlumnos = document.getElementById("tab-alumnos");
-    const tabAsistencias = document.getElementById("tab-asistencias");
-    const tabForos = document.getElementById("tab-foros");
-    
-    if (tabRecursos) tabRecursos.classList.toggle("active", vista === 'recursos');
-    if (tabAlumnos) tabAlumnos.classList.toggle("active", vista === 'alumnos');
-    if (tabAsistencias) tabAsistencias.classList.toggle("active", vista === 'asistencias');
-    if (tabForos) tabForos.classList.toggle("active", vista === 'foros');
+    const tabs = ['recursos', 'alumnos', 'asistencias', 'foros', 'tareas'];
+    tabs.forEach(t => {
+        const tabEl = document.getElementById(`tab-${t}`);
+        if (tabEl) tabEl.classList.toggle("active", vista === t);
+    });
 
-    const divRecursos = document.getElementById("vista-recursos");
-    const divAlumnos = document.getElementById("vista-alumnos");
-    const divAsistencias = document.getElementById("vista-asistencias");
-    const divForos = document.getElementById("vista-foros");
-
-    if (divRecursos) divRecursos.classList.toggle("d-none", vista !== 'recursos');
-    if (divAlumnos) divAlumnos.classList.toggle("d-none", vista !== 'alumnos');
-    if (divAsistencias) divAsistencias.classList.toggle("d-none", vista !== 'asistencias');
-    if (divForos) divForos.classList.toggle("d-none", vista !== 'foros');
+    const views = ['recursos', 'alumnos', 'asistencias', 'foros', 'tareas'];
+    views.forEach(v => {
+        const viewEl = document.getElementById(`vista-${v}`);
+        if (viewEl) viewEl.classList.toggle("d-none", vista !== v);
+    });
 
     cargarDatosSubVista();
 }
@@ -160,6 +160,8 @@ function cargarDatosSubVista() {
         cargarPlanillaAsistencia();
     } else if (vistaActual === 'foros') {
         cargarForosCurso();
+    } else if (vistaActual === 'tareas') {
+        cargarTareasCurso();
     }
 }
 
@@ -465,7 +467,7 @@ async function guardarAsistenciaDia() {
             .upsert(registrosUpsert, { onConflict: 'curso_id, perfil_id, fecha' });
 
         if (error) throw error;
-        alert("¡Asistencia del día guardada y sincronizada con éxito!");
+        alert("¡Asistencia del día guardada y synchronized con éxito!");
         await cargarPlanillaAsistencia();
 
     } catch (error) {
@@ -517,7 +519,6 @@ async function exportarAsistenciasCurso() {
 // =========================================================================
 // MÓDULO D: NUEVA LOGICA OPERATIVA PARA EL CONTROL DE FOROS
 // =========================================================================
-
 async function cargarForosCurso() {
     try {
         const { data: foros, error } = await supabase
@@ -605,20 +606,24 @@ window.eliminarForoDefinitivo = async function(idForo) {
 
 window.verRespuestasForo = async function(idForo, titulo, descripcion, fechaLimite) {
     document.getElementById("modalRespuestasLabel").innerText = titulo;
-    document.getElementById("modal-foro-fecha").innerHTML = `<i class="bi bi-clock-history me-1"></i> Disponible hasta: <b>${fechaLimite}</b>`;
+    
+    // Verificación de seguridad si el elemento modal-foro-fecha no existe en el HTML adjunto
+    const lblFecha = document.getElementById("modal-foro-fecha");
+    if (lblFecha) {
+        lblFecha.innerHTML = `<i class="bi bi-clock-history me-1"></i> Disponible hasta: <b>${fechaLimite}</b>`;
+    }
+    
     document.getElementById("modal-foro-descripcion").innerText = descripcion;
 
     const contenedor = document.getElementById("contenedor-comentarios-foro");
     contenedor.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div> Recuperando participaciones de alumnos...</div>`;
 
-    // Levantar el modal de Bootstrap de forma nativa
     if (!modalForoInstance) {
-        modalForoInstance = new bootstrap.Modal(document.getElementById('modalRespuestasFlujo' || 'modalRespuestasForo'));
+        modalForoInstance = new bootstrap.Modal(document.getElementById('modalRespuestasForo'));
     }
     modalForoInstance.show();
 
     try {
-        // Consultar respuestas del foro trayendo el autor (alumno)
         const { data: comentarios, error } = await supabase
             .from('foro_respuestas')
             .select(`
@@ -646,7 +651,6 @@ window.verRespuestasForo = async function(idForo, titulo, descripcion, fechaLimi
             const autor = com.perfiles;
             const esDocenteOAdmin = autor && (autor.rol === 'docente' || autor.rol === 'admin');
             
-            // Si el comentario lo hace el docente, se pinta con un color destacado
             const fondoCaja = esDocenteOAdmin ? 'bg-primary-subtle border-primary-subtle text-dark' : 'bg-white border-light-subtle';
             const badgeAutor = esDocenteOAdmin ? `<span class="badge bg-primary ms-1">Docente</span>` : '';
             const fechaFormateada = new Date(com.created_at).toLocaleString();
@@ -671,6 +675,211 @@ window.verRespuestasForo = async function(idForo, titulo, descripcion, fechaLimi
 window.cerrarModalForo = function() {
     if (modalForoInstance) {
         modalForoInstance.hide();
+    }
+}
+
+// =========================================================================
+// MÓDULO E: GESTIÓN DE TAREAS Y CALIFICACIONES (GOOGLE FORMS DINÁMICO)
+// =========================================================================
+async function cargarTareasCurso() {
+    try {
+        const { data: tareas, error } = await supabase
+            .from('tareas')
+            .select('*')
+            .eq('curso_id', cursoActivoId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        const tbody = document.getElementById("tabla-tareas-body");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        if (!tareas || tareas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">No hay tareas publicadas en este curso académico.</td></tr>`;
+            return;
+        }
+
+        tareas.forEach(t => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>
+                    <span class="fw-bold text-dark d-block">${t.titulo}</span>
+                    <small class="text-muted d-block text-truncate" style="max-width:400px;">${t.descripcion}</small>
+                </td>
+                <td><span class="badge bg-light text-dark border">${t.fecha_entrega.split('T')[0]}</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-success me-1 fw-semibold" onclick="window.abrirModalRevision(${t.id})">
+                        <i class="bi bi-bookmark-star-fill"></i> Calificar
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.eliminarTareaDefinitiva(${t.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) { 
+        console.error("Error en cargarTareasCurso: ", e.message); 
+    }
+}
+
+async function guardarTarea(e) {
+    e.preventDefault();
+    if (!cursoActivoId) return;
+
+    const titulo = document.getElementById("tarea-titulo").value.trim();
+    const descripcion = document.getElementById("tarea-descripcion").value.trim();
+    const url_formulario_google = document.getElementById("tarea-google-url").value.trim();
+    const nota_maxima = parseInt(document.getElementById("tarea-nota-max").value, 10);
+    const fecha_entrega = document.getElementById("tarea-fecha-limite").value + "T23:59:59Z";
+
+    try {
+        const { error } = await supabase
+            .from('tareas')
+            .insert([{ curso_id: cursoActivoId, titulo, descripcion, url_formulario_google, nota_maxima, fecha_entrega }]);
+
+        if (error) throw error;
+        document.getElementById("form-tarea").reset();
+        await cargarTareasCurso();
+        alert("¡Actividad asignada con éxito! El formulario de Google Forms ha sido enlazado.");
+    } catch (e) { 
+        alert("Error al guardar la tarea: " + e.message); 
+    }
+}
+
+window.eliminarTareaDefinitiva = async function(idTarea) {
+    if (!confirm("¿Seguro que deseas eliminar esta tarea? Se borrarán también las notas asociadas de los estudiantes.")) return;
+    try {
+        const { error } = await supabase.from('tareas').delete().eq('id', idTarea);
+        if (error) throw error;
+        await cargarTareasCurso();
+    } catch(e) { 
+        console.error(e.message); 
+    }
+}
+
+window.abrirModalRevision = async function(idTarea) {
+    tareaActivaSeleccionadaId = idTarea;
+    const tbody = document.getElementById("tabla-revision-entregas-body");
+    if (!tbody) return;
+    tbody.innerHTML = "<tr><td colspan='5' class='text-center py-3'>Cruzando datos de matriculados y confirmaciones...</td></tr>";
+
+    if (!modalRevisionInstance) {
+        modalRevisionInstance = new bootstrap.Modal(document.getElementById('modalRevisionTareas'));
+    }
+    modalRevisionInstance.show();
+
+    try {
+        // 1. Obtener los alumnos aprobados reales del curso
+        const { data: estudiantes, error: errEst } = await supabase
+            .from('inscripciones')
+            .select('perfil_id, perfiles!perfil_id(nombre_apellido)')
+            .eq('curso_id', cursoActivoId)
+            .eq('estado', 'aprobado');
+
+        if (errEst) throw errEst;
+
+        // 2. Obtener las confirmaciones de entrega existentes
+        const { data: entregas, error: errEnt } = await supabase
+            .from('tarea_entregas')
+            .select('*')
+            .eq('tarea_id', idTarea);
+
+        if (errEnt) throw errEnt;
+
+        const mapaEntregas = {};
+        if (entregas) entregas.forEach(e => mapaEntregas[e.perfil_id] = e);
+
+        tbody.innerHTML = "";
+        if (!estudiantes || estudiantes.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center text-muted py-3'>No hay alumnos registrados en este curso.</td></tr>";
+            return;
+        }
+
+        estudiantes.forEach(item => {
+            const al = item.perfiles; 
+            if (!al) return;
+            
+            const registroEntrega = mapaEntregas[item.perfil_id];
+            const confirmoEnvio = !!registroEntrega;
+            
+            const badgeEstado = confirmoEnvio 
+                ? `<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle-fill"></i> Entregado</span>`
+                : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-circle-fill"></i> Pendiente</span>`;
+
+            const comentario = (confirmoEnvio && registroEntrega.comentario_estudiante) ? registroEntrega.comentario_estudiante : '<span class="text-muted small">Sin comentarios</span>';
+            const notaActual = (confirmoEnvio && registroEntrega.nota_asignada !== null) ? registroEntrega.nota_asignada : "";
+            const feedbackActual = (confirmoEnvio && registroEntrega.retroalimentacion) ? registroEntrega.retroalimentacion : "";
+
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-perfil", item.perfil_id);
+            tr.innerHTML = `
+                <td class="fw-bold text-dark">${al.nombre_apellido}</td>
+                <td>${badgeEstado}</td>
+                <td><small class="text-secondary">${comentario}</small></td>
+                <td>
+                    <input type="number" step="0.01" class="form-control form-control-sm input-nota" value="${notaActual}" placeholder="0.00" style="width:95px;">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm input-feedback" value="${feedbackActual}" placeholder="Ej: Buen análisis...">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (e) { 
+        console.error("Error al cargar la revisión de tareas: ", e.message); 
+    }
+}
+
+window.guardarNotasTareas = async function() {
+    if (!tareaActivaSeleccionadaId) return;
+
+    const filas = document.querySelectorAll("#tabla-revision-entregas-body tr");
+    const registrosUpsert = [];
+
+    filas.forEach(f => {
+        const perfilId = f.getAttribute("data-perfil");
+        const inputNota = f.querySelector(".input-nota");
+        const inputFeedback = f.querySelector(".input-feedback");
+
+        if (perfilId && inputNota && inputFeedback) {
+            const notaVal = inputNota.value;
+            const feedbackVal = inputFeedback.value.trim();
+
+            if (notaVal !== "" || feedbackVal !== "") {
+                registrosUpsert.push({
+                    tarea_id: Number(tareaActivaSeleccionadaId),
+                    perfil_id: perfilId,
+                    nota_asignada: notaVal !== "" ? parseFloat(notaVal) : null,
+                    retroalimentacion: feedbackVal !== "" ? feedbackVal : null
+                });
+            }
+        }
+    });
+
+    if (registrosUpsert.length === 0) { 
+        window.cerrarModalRevision(); 
+        return; 
+    }
+
+    try {
+        const { error } = await supabase
+            .from('tarea_entregas')
+            .upsert(registrosUpsert, { onConflict: 'tarea_id, perfil_id' });
+
+        if (error) throw error;
+        alert("¡Calificaciones y retroalimentaciones sincronizadas con éxito!");
+        window.cerrarModalRevision();
+        await cargarTareasCurso();
+    } catch (e) { 
+        alert("Error al registrar notas: " + e.message); 
+    }
+}
+
+window.cerrarModalRevision = function() { 
+    if (modalRevisionInstance) {
+        modalRevisionInstance.hide(); 
     }
 }
 
