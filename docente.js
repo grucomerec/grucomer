@@ -895,3 +895,73 @@ async function cerrarSesionDocente() {
         alert("Error al cerrar la sesión: " + error.message);
     }
 }
+
+// =========================================================================
+// RECURSO ACADÉMICO: EXPORTACIÓN DE CALIFICACIONES A FORMATO EXCEL (CSV)
+// =========================================================================
+window.exportarCalificacionesCSV = function() {
+    console.log("🚀 Ejecutando exportación de calificaciones..."); // Mensaje de control para tu consola
+
+    const tbody = document.getElementById("tabla-revision-entregas-body");
+    if (!tbody || tbody.rows.length === 0 || tbody.rows[0].cells[0].colSpan) {
+        alert("⚠️ No hay calificaciones disponibles para exportar en este momento.");
+        return;
+    }
+
+    // 2. Extraer el nombre de la tarea en revisión desde el encabezado del modal para nombrar el archivo
+    const modalTitulo = document.getElementById("modalRevisionLabel");
+    let nombreTarea = modalTitulo ? modalTitulo.innerText.replace("Revisión de Entregas: ", "").trim() : "Calificaciones";
+    
+    // Limpiar caracteres extraños del nombre para evitar fallos de guardado en Windows/Mac
+    nombreTarea = nombreTarea.replace(/[/\\?%*:|"<>]/g, '-');
+
+    // 3. Crear las cabeceras del archivo CSV (Encabezados de las columnas)
+    let contenidoCSV = "Estudiante;Estado en Aula;Comentario/Archivo Alumno;Calificación;Retroalimentación\r\n";
+
+    // 4. Recorrer de forma secuencial cada fila de la tabla de calificaciones
+    for (let i = 0; i < tbody.rows.length; i++) {
+        const fila = tbody.rows[i];
+        
+        // Extraer el texto crudo de los campos fijos
+        const estudiante = fila.cells[0].innerText.trim();
+        const estadoAula = fila.cells[1].innerText.trim();
+        const notaConfirmacion = fila.cells[2].innerText.trim();
+        
+        // Capturar los valores dinámicos dentro de los elementos Input / Select
+        const inputNota = fila.cells[3].querySelector("input");
+        const notaValue = inputNota ? inputNota.value.trim() : "0";
+        
+        const textareaRetro = fila.cells[4].querySelector("textarea");
+        const retroValue = textareaRetro ? textareaRetro.value.trim() : "";
+
+        // Limpiar saltos de línea o comillas que puedan romper las columnas del CSV en Excel
+        const estudianteLimpio = estudiante.replace(/[\r\n;]/g, " ");
+        const estadoLimpio     = estadoAula.replace(/[\r\n;]/g, " ");
+        const notaConfLimpia    = notaConfirmacion.replace(/[\r\n;]/g, " ");
+        const retroLimpia      = retroValue.replace(/[\r\n;]/g, " ");
+
+        // Concatenar la fila con delimitador punto y coma (Estándar latino para Excel)
+        contenidoCSV += `"${estudianteLimpio}";"${estadoLimpio}";"${notaConfLimpia}";"${notaValue}";"${retroLimpia}"\r\n`;
+    }
+
+    // 5. Crear el objeto binario (Blob) con codificación especial para caracteres latinos (UTF-8 BOM)
+    // El prefijo \uFEFF obliga a Microsoft Excel a abrir el archivo leyendo correctamente tildes y eñes
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), contenidoCSV], { type: "text/csv;charset=utf-8;" });
+    
+    // 6. Generar el disparador de descarga automático e invisible en el navegador
+    const linkDescarga = document.createElement("a");
+    if (linkDescarga.download !== undefined) { 
+        // Crear un enlace temporal apuntando al archivo creado
+        const url = URL.createObjectURL(blob);
+        linkDescarga.setAttribute("href", url);
+        
+        // Estructurar el nombre final del archivo descargado (Ej: "Calificaciones - Tarea 1.csv")
+        linkDescarga.setAttribute("download", `Calificaciones - ${nombreTarea}.csv`);
+        linkDescarga.style.visibility = 'hidden';
+        
+        // Adjuntar, hacer clic y remover de la interfaz
+        document.body.appendChild(linkDescarga);
+        linkDescarga.click();
+        document.body.removeChild(linkDescarga);
+    }
+};

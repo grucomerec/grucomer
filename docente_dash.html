@@ -8,8 +8,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body class="bg-light">
 
+<body class="bg-light">
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid px-4">
       <a class="navbar-brand fw-bold text-primary" href="#">🎓 Grucomer <span class="text-white">Edu</span></a>
@@ -23,9 +23,7 @@
       </div>
     </div>
   </nav>
-
-  <div class="container py-4">
-    
+  <div class="container py-4">  
     <div class="row mb-4">
       <div class="col-md-6 col-lg-5">
         <div class="card shadow-sm border-0">
@@ -40,9 +38,7 @@
         </div>
       </div>
     </div>
-
-    <div id="zona-trabajo-docente" class="d-none">
-      
+    <div id="zona-trabajo-docente" class="d-none">  
       <ul class="nav nav-tabs mb-4" id="pestañasCurso" role="tablist">
         <li class="nav-item">
           <button class="nav-link active fw-bold" id="tab-recursos" onclick="window.cambiarSubVista('recursos')">
@@ -70,7 +66,6 @@
           </button>
         </li>
       </ul>
-
       <div id="vista-recursos" class="">
         <div class="row">
           <div class="col-md-4 mb-4">
@@ -108,7 +103,6 @@
               </div>
             </div>
           </div>
-
           <div class="col-md-8 mb-4">
             <div class="card shadow-sm border-0">
               <div class="card-body">
@@ -132,7 +126,6 @@
           </div>
         </div>
       </div>
-
       <div id="vista-alumnos" class="d-none">
         <div class="card shadow-sm border-0">
           <div class="card-body p-4">
@@ -162,7 +155,6 @@
           </div>
         </div>
       </div>
-
       <div id="vista-asistencias" class="d-none">
         <div class="card shadow-sm border-0 mb-4">
           <div class="card-header bg-white border-0 py-3 d-flex flex-wrap align-items-center justify-content-between">
@@ -192,7 +184,6 @@
           </div>
         </div>
       </div>
-
       <div id="vista-foros" class="d-none">
         <div class="row">
           <div class="col-md-4 mb-4">
@@ -240,7 +231,6 @@
           </div>
         </div>
       </div>
-
       <div id="vista-tareas" class="d-none">
         <div class="row">
           <div class="col-md-4 mb-4">
@@ -258,11 +248,6 @@
                     <label class="form-label small fw-semibold">Instrucciones / Rúbrica:</label>
                     <textarea id="tarea-descripcion" class="form-control form-control-sm" rows="3" placeholder="Describe los requisitos de la entrega..." required></textarea>
                   </div>
-                  <div class="mb-3">
-                    <label class="form-label small fw-semibold">Enlace de Google Forms (Para este Curso):</label>
-                    <input type="url" id="tarea-google-url" class="form-control form-control-sm" placeholder="https://docs.google.com/forms/d/e/..." required>
-                    <div class="form-text text-muted" style="font-size:11px;">Pega el enlace de recolección generado en tu Drive para este curso.</div>
-                  </div>
                   <div class="row">
                     <div class="col-6 mb-3">
                       <label class="form-label small fw-semibold">Nota Máxima:</label>
@@ -274,13 +259,12 @@
                     </div>
                   </div>
                   <button type="submit" class="btn btn-sm btn-success w-100 fw-bold">
-                    <i class="bi bi-send-check"></i> Publicar Actividad
+                    <i class="bi bi-send-check"></i> Subir Tarea
                   </button>
                 </form>
               </div>
             </div>
           </div>
-
           <div class="col-md-8 mb-4">
             <div class="card shadow-sm border-0">
               <div class="card-body">
@@ -302,16 +286,12 @@
           </div>
         </div>
       </div>
-
     </div>
-
     <div id="mensaje-espera-curso" class="text-center py-5 text-muted">
       <i class="bi bi-arrow-up-circle display-4 text-secondary"></i>
       <p class="mt-2 fw-semibold">Por favor, selecciona un curso del menú superior para administrar los módulos académicos.</p>
     </div>
-
   </div>
-
   <div class="modal fade" id="modalRespuestasForo" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -329,7 +309,6 @@
       </div>
     </div>
   </div>
-
   <div class="modal fade" id="modalRevisionTareas" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content border-0 shadow">
@@ -356,14 +335,22 @@
             </table>
           </div>
         </div>
-        <div class="modal-footer bg-white">
+
+  <div class="modal-footer bg-white">
+          <button type="button" class="btn btn-sm btn-outline-success fw-bold me-auto" id="btn-exportar-calificaciones" onclick="window.exportarCalificacionesCSV()">
+            <i class="bi bi-file-earmark-excel-fill me-1"></i> Exportar a Excel (CSV)
+          </button>
+
           <button type="button" class="btn btn-sm btn-primary fw-bold px-4" id="btn-guardar-calificaciones" onclick="window.guardarNotasTareas()">
             <i class="bi bi-cloud-check-fill me-1"></i> Sincronizar Calificaciones
           </button>
-          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" onclick="window.cerrarModalRevision()">Cerrar</button>
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss=\"modal\" onclick=\"window.cerrarModalRevision()\">Cerrar</button>
         </div>
+
       </div>
+
     </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
