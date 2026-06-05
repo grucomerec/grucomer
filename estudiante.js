@@ -345,6 +345,10 @@ window.cerrarModalForo = function() {
 // =========================================================================
 // MÓDULO C: GESTIÓN DE TAREAS INTEGRADAS CON GOOGLE FORMS DINÁMICO
 // =========================================================================
+const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbw7hmF13U4uw9vwXw8nC-7AmbLgsO7kGUZsIQeZCDmt8Ugsg6WUF9EcRE3Zq31Xjjj1/exec"; 
+let modalCargaInstance = null;
+
+
 async function cargarTareasEstudiante() {
     try {
         // 1. Obtener todas las tareas programadas en la asignatura
@@ -378,29 +382,45 @@ async function cargarTareasEstudiante() {
             entregas.forEach(e => mapaEntregas[e.tarea_id] = e);
         }
 
+        // 3. Obtener el nombre del curso actual para enviárselo a Google Drive (y cree la subcarpeta)
+        const selectCurso = document.getElementById("select-curso-estudiante");
+        const nombreCursoActivo = selectCurso.options[selectCurso.selectedIndex].text;
+
+        // 4. Obtener el nombre del estudiante para nombrar el archivo de forma ordenada
+        const txtNombreEstudiante = document.getElementById("estudiante-name").innerText;
+        const nombreEstudianteLimpio = txtNombreEstudiante.replace("Alumno: ", "").trim();
+
         tareas.forEach(t => {
             const registroEntrega = mapaEntregas[t.id];
             const haEntregado = !!registroEntrega;
 
-            // Gestión visual de estados
             let badgeEstado = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-triangle-fill"></i> Pendiente</span>`;
             let txtNota = `<span class="text-muted small">Sin calificar</span>`;
-            let btnAccion = `<button class="btn btn-sm btn-success rounded-pill px-3 fw-bold mb-1 w-100" onclick="window.abrirFormularioYConfirmar(${t.id}, '${t.url_formulario_google}')"><i class="bi bi-pencil-square"></i> Realizar Tarea</button>`;
+            
+            // Renderizado dinámico de la columna de acciones (Input File nativo si está pendiente)
+            let btnAccion = `
+                <div class="input-group input-group-sm">
+                    <input type="file" id="file-${t.id}" accept=".pdf" class="form-control" onchange="window.procesarSubidaTarea(${t.id}, '${t.titulo.replace(/'/g, "\\'")}', '${nombreCursoActivo.replace(/'/g, "\\'")}', '${nombreEstudianteLimpio.replace(/'/g, "\\'")}')">
+                    <label class="input-group-text bg-primary text-white" for="file-${t.id}"><i class="bi bi-cloud-arrow-up"></i></label>
+                </div>
+            `;
 
             if (haEntregado) {
                 badgeEstado = `<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle-fill"></i> Entregado</span>`;
                 
-                // Evaluar si ya tiene nota asignada por el maestro
                 if (registroEntrega.nota_asignada !== null && registroEntrega.nota_asignada !== undefined) {
                     txtNota = `<b class="text-primary">${registroEntrega.nota_asignada.toFixed(2)}</b> / <small class="text-secondary">${t.nota_maxima}</small>`;
-                    
                     if (registroEntrega.retroalimentacion) {
                         txtNota += `<br><small class="text-muted d-block" style="font-size:0.75rem;"><b>Obs:</b> ${registroEntrega.retroalimentacion}</small>`;
                     }
                 }
 
-                // El estudiante puede re-confirmar o ver el formulario si lo requiere
-                btnAccion = `<a href="${t.url_formulario_google}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 w-100" style="font-size:0.8rem;"><i class="bi bi-eye"></i> Entregar Tarea</a>`;
+                // Si ya entregó, le permitimos abrir el archivo subido a Drive para revisión
+                if (registroEntrega.comentario_estudiante && registroEntrega.comentario_estudiante.startsWith("http")) {
+                    btnAccion = `<a href="${registroEntrega.comentario_estudiante}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 w-100"><i class="bi bi-eye-fill"></i> Ver Archivo Enviado</a>`;
+                } else {
+                    btnAccion = `<span class="text-muted small"><i class="bi bi-check-all text-success"></i> Entregado correctamente</span>`;
+                }
             }
 
             const tr = document.createElement("tr");
@@ -422,33 +442,96 @@ async function cargarTareasEstudiante() {
     }
 }
 
-window.abrirFormularioYConfirmar = async function(idTarea, urlGoogleForm) {
-    // 1. Abrir de inmediato el Formulario de Google en otra pestaña para que realice la carga del PDF
-    window.open(urlGoogleForm, '_blank');
+// Función orquestadora: se ejecuta en el 'onchange' cuando el alumno selecciona un PDF
+window.procesarSubidaTarea = async function(idTarea, tituloTarea, nombreCurso, nombreAlumno) {
+    const inputArchivo = document.getElementById(`file-${idTarea}`);
+    if (!inputArchivo || inputArchivo.files.length === 0) return;
 
-    // 2. Solicitar de forma nativa la confirmación en pantalla
-    const comentario = prompt("Acabas de abrir el Google Form.\n\nUna vez que subas tu archivo PDF y le des clic al botón 'Enviar' dentro del formulario de Google, regresa a esta ventana y escribe un comentario opcional (Ej: 'Envío completado') para registrar tu entrega en el Aula Virtual:");
-    
-    if (comentario === null) return; // Si cancela el prompt, no se registra nada
+    const archivo = inputArchivo.files[0];
+
+    // Validación básica de tipo de archivo y peso max (Ej: 10MB)
+    if (archivo.type !== "application/pdf") {
+        alert("❌ Formato no válido. El aula virtual solo acepta archivos en formato PDF.");
+        inputArchivo.value = "";
+        return;
+    }
+    if (archivo.size > 10 * 1024 * 1024) {
+        alert("❌ El archivo es demasiado pesado. El límite máximo es de 10 MB.");
+        inputArchivo.value = "";
+        return;
+    }
+
+    // Inicializar modal de carga visual de Bootstrap
+    if (!modalCargaInstance) {
+        modalCargaInstance = new bootstrap.Modal(document.getElementById('modalCargaTarea'));
+    }
+    modalCargaInstance.show();
 
     try {
-        // Ejecutamos un upsert sobre la tabla relacional tarea_entregas
-        const { error } = await supabase
+        // 1. Convertir el archivo local binario a texto Base64 mediante FileReader API
+        const archivoBase64 = await convertirArchivoABase64(archivo);
+
+        // 2. Formatear un nombre de archivo limpio y estructurado para tu Google Drive
+        // Ejemplo: "PEREZ JUAN - Tarea 1.pdf"
+        const nombreArchivoDrive = `${nombreAlumno.toUpperCase()} - ${tituloTarea}.pdf`;
+
+        // 3. Empaquetar el JSON para la API de Google Apps Script
+        const payload = {
+            archivoBase64: archivoBase64,
+            nombreArchivo: nombreArchivoDrive,
+            nombreCurso: nombreCurso
+        };
+
+        // 4. Despachar petición HTTP POST asíncrona hacia Google Apps Script
+        const response = await fetch(URL_APPS_SCRIPT, {
+            method: "POST",
+            mode: "cors",
+            body: JSON.stringify(payload)
+        });
+
+        const resultadoDrive = await response.json();
+
+        if (resultadoDrive.status !== "success") {
+            throw new Error(resultadoDrive.message || "Google Drive rechazó la carga.");
+        }
+
+        // 5. ¡Éxito en Drive! Procedemos a registrar la entrega en Supabase.
+        // Guardamos el enlace del archivo devuelto por Google en 'comentario_estudiante' para que el docente pueda revisarlo.
+        const { error: errorSupabase } = await supabase
             .from('tarea_entregas')
             .upsert({
                 tarea_id: Number(idTarea),
                 perfil_id: estudianteId,
-                comentario_estudiante: comentario.trim() || "Entrega registrada vía formulario propio."
+                comentario_estudiante: resultadoDrive.url // Almacena el link directo de Google Drive
             }, { onConflict: 'tarea_id, perfil_id' });
 
-        if (error) throw error;
+        if (errorSupabase) throw errorSupabase;
 
-        alert("¡Felicidades! Tu entrega ha sido notificada al docente con éxito en el sistema central de Grucomer.");
-        await cargarTareasEstudiante(); // Recargar cuadrícula en caliente
+        // Cerrar modal de carga y actualizar UI
+        modalCargaInstance.hide();
+        alert("🎉 ¡Tarea subida y registrada con éxito absoluto!");
+        await cargarTareasEstudiante();
 
     } catch (err) {
-        alert("Error al sincronizar tu entrega: " + err.message);
+        if (modalCargaInstance) modalCargaInstance.hide();
+        alert("❌ Ocurrió un error al procesar el envío: " + err.message);
+        inputArchivo.value = "";
     }
+}
+
+// Utilidad asíncrona para transformar binarios a cadenas Base64 limpias
+function convertirArchivoABase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            // El resultado viene como: "data:application/pdf;base64,JVBERi..."
+            // Necesitamos remover el prefijo para extraer únicamente el string Base64 puro
+            const base64Puro = reader.result.split(',')[1];
+            resolve(base64Puro);
+        };
+        reader.onerror = error => reject(error);
+    });
 }
 
 // =========================================================================
