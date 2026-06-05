@@ -5,6 +5,7 @@ let cursoActivoId = null;
 let vistaActual = 'recursos';
 let alumnosCursoOriginal = [];
 let nominaAlumnosAsistencia = []; // Almacena los alumnos activos de asistencia
+let modalForoInstance = null;     // Instancia del modal de Bootstrap para respuestas
 
 // =========================================================================
 // GESTOR DE EVENTOS INICIALES (DOM CONTENT LOADED)
@@ -38,6 +39,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const btnExportarAsis = document.getElementById("btn-exportar-asistencias");
     if (btnExportarAsis) {
         btnExportarAsis.addEventListener("click", exportarAsistenciasCurso);
+    }
+
+    // Inicialización del formulario de Foros
+    const formForo = document.getElementById("form-foro");
+    if (formForo) {
+        formForo.addEventListener("submit", guardarForo);
     }
 });
 
@@ -98,7 +105,6 @@ async function inicializarPanelDocente() {
 // =========================================================================
 // CONTROLADORES DE RENDERIZADO Y FLUJO DE PESTAÑAS (UI)
 // =========================================================================
-
 window.cambiarCursoActivo = function(idCurso) {
     const zonaTrabajo = document.getElementById("zona-trabajo-docente");
     const mensajeEspera = document.getElementById("mensaje-espera-curso");
@@ -123,18 +129,22 @@ window.cambiarSubVista = function(vista) {
     const tabRecursos = document.getElementById("tab-recursos");
     const tabAlumnos = document.getElementById("tab-alumnos");
     const tabAsistencias = document.getElementById("tab-asistencias");
+    const tabForos = document.getElementById("tab-foros");
     
     if (tabRecursos) tabRecursos.classList.toggle("active", vista === 'recursos');
     if (tabAlumnos) tabAlumnos.classList.toggle("active", vista === 'alumnos');
     if (tabAsistencias) tabAsistencias.classList.toggle("active", vista === 'asistencias');
+    if (tabForos) tabForos.classList.toggle("active", vista === 'foros');
 
     const divRecursos = document.getElementById("vista-recursos");
     const divAlumnos = document.getElementById("vista-alumnos");
     const divAsistencias = document.getElementById("vista-asistencias");
+    const divForos = document.getElementById("vista-foros");
 
     if (divRecursos) divRecursos.classList.toggle("d-none", vista !== 'recursos');
     if (divAlumnos) divAlumnos.classList.toggle("d-none", vista !== 'alumnos');
     if (divAsistencias) divAsistencias.classList.toggle("d-none", vista !== 'asistencias');
+    if (divForos) divForos.classList.toggle("d-none", vista !== 'foros');
 
     cargarDatosSubVista();
 }
@@ -148,13 +158,14 @@ function cargarDatosSubVista() {
         cargarAlumnosCurso();
     } else if (vistaActual === 'asistencias') {
         cargarPlanillaAsistencia();
+    } else if (vistaActual === 'foros') {
+        cargarForosCurso();
     }
 }
 
 // =========================================================================
 // MÓDULO A: CONTROL PEDAGÓGICO DE MATERIALES
 // =========================================================================
-
 async function cargarRecursosCurso() {
     try {
         const { data: recursos, error } = await supabase
@@ -337,7 +348,7 @@ window.filtrarAlumnosEnPantalla = function() {
 }
 
 // =========================================================================
-// MÓDULO C: SISTEMA DE CONTROL DE ASISTENCIA DIARIO (NUEVO)
+// MÓDULO C: SISTEMA DE CONTROL DE ASISTENCIA DIARIO
 // =========================================================================
 async function cargarPlanillaAsistencia() {
     if (!cursoActivoId) return;
@@ -348,7 +359,6 @@ async function cargarPlanillaAsistencia() {
     tbody.innerHTML = `<tr><td colspan="4" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Cargando nómina...</td></tr>`;
 
     try {
-        // 1. CORRECCIÓN CRÍTICA: Apuntar explícitamente a la llave foránea 'perfil_id'
         const { data: inscritos, error: errInsc } = await supabase
             .from('inscripciones')
             .select(`
@@ -359,7 +369,7 @@ async function cargarPlanillaAsistencia() {
                 )
             `)
             .eq('curso_id', cursoActivoId)
-            .eq('estado', 'aprobated'); // Asegúrate si en tu BD guardas 'aprobado' o 'aprobated'
+            .eq('estado', 'aprobado');
 
         if (errInsc) throw errInsc;
 
@@ -370,7 +380,6 @@ async function cargarPlanillaAsistencia() {
 
         nominaAlumnosAsistencia = inscritos;
 
-        // 2. Extraer si existen asistencias previas en esta misma fecha
         const { data: asistenciasGuardadas, error: errAsis } = await supabase
             .from('asistencias')
             .select('perfil_id, estado')
@@ -386,16 +395,13 @@ async function cargarPlanillaAsistencia() {
 
         tbody.innerHTML = "";
         
-        // 3. Renderizar las filas con interruptores automatizados
         inscritos.forEach(item => {
-            // CORRECCIÓN: Extraer correctamente el objeto de perfiles mapeado explícitamente
             const alumno = item.perfiles; 
             if (!alumno) return;
 
             const estadoReal = mapaAsistencias[item.perfil_id];
-            
             const estaAsistiendo = estadoReal ? (estadoReal === 'presente' || estadoReal === 'atraso') : true;
-            const novedadSeleccionada = estadoReal ? estadoReal : 'presente';
+            const novelty = estadoReal ? estadoReal : 'presente';
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -408,17 +414,16 @@ async function cargarPlanillaAsistencia() {
                 </td>
                 <td class="text-center">
                     <select class="form-select form-select-sm select-novedad" style="width: 140px; margin: 0 auto;" data-perfil="${item.perfil_id}">
-                        <option value="presente" ${novedadSeleccionada === 'presente' ? 'selected' : ''}>Presente</option>
-                        <option value="ausente" ${novedadSeleccionada === 'ausente' ? 'selected' : ''}>Ausente</option>
-                        <option value="atraso" ${novedadSeleccionada === 'atraso' ? 'selected' : ''}>Atraso</option>
-                        <option value="justificado" ${novedadSeleccionada === 'justificado' ? 'selected' : ''}>Justificado</option>
+                        <option value="presente" ${novelty === 'presente' ? 'selected' : ''}>Presente</option>
+                        <option value="ausente" ${novelty === 'ausente' ? 'selected' : ''}>Ausente</option>
+                        <option value="atraso" ${novelty === 'atraso' ? 'selected' : ''}>Atraso</option>
+                        <option value="justificado" ${novelty === 'justificado' ? 'selected' : ''}>Justificado</option>
                     </select>
                 </td>
             `;
             tbody.appendChild(tr);
         });
 
-        // Evento reactivo
         tbody.querySelectorAll(".check-asistencia").forEach(sw => {
             sw.addEventListener("change", (e) => {
                 const select = tbody.querySelector(`select[data-perfil="${sw.dataset.perfil}"]`);
@@ -485,7 +490,6 @@ async function exportarAsistenciasCurso() {
             return;
         }
 
-        // Estructuración del CSV con caracteres UTF-8 protegidos
         let csvContent = "\uFEFF"; 
         csvContent += "Fecha,Cedula,Estudiante,Estado de Asistencia\n";
 
@@ -507,6 +511,166 @@ async function exportarAsistenciasCurso() {
 
     } catch (error) {
         alert("Error al compilar el archivo de reporte: " + error.message);
+    }
+}
+
+// =========================================================================
+// MÓDULO D: NUEVA LOGICA OPERATIVA PARA EL CONTROL DE FOROS
+// =========================================================================
+
+async function cargarForosCurso() {
+    try {
+        const { data: foros, error } = await supabase
+            .from('foros')
+            .select('*')
+            .eq('curso_id', cursoActivoId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const tbody = document.getElementById("tabla-foros-body");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        if (!foros || foros.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-3">No se han aperturado foros en este curso académico.</td></tr>`;
+            return;
+        }
+
+        foros.forEach(foro => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>
+                    <span class="fw-semibold text-dark d-block">${foro.titulo}</span>
+                    <small class="text-muted text-truncate d-inline-block" style="max-width: 320px;">${foro.descripcion}</small>
+                </td>
+                <td><span class="badge bg-light text-dark border"><i class="bi bi-calendar-event me-1"></i>${foro.fecha_limite}</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="window.verRespuestasForo(${foro.id}, '${foro.titulo.replace(/'/g, "\\'")}', '${foro.descripcion.replace(/'/g, "\\'")}', '${foro.fecha_limite}')">
+                        <i class="bi bi-chat-dots-fill"></i> Respuestas
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="window.eliminarForoDefinitivo(${foro.id})">
+                        <i class="bi bi-trash"></i> Borrar
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Error al renderizar los foros:", error.message);
+    }
+}
+
+async function guardarForo(e) {
+    e.preventDefault();
+    if (!cursoActivoId) return;
+
+    const titulo = document.getElementById("foro-titulo").value.trim();
+    const descripcion = document.getElementById("foro-descripcion").value.trim();
+    const fecha_limite = document.getElementById("foro-fecha-limite").value;
+
+    try {
+        const { error } = await supabase
+            .from('foros')
+            .insert([{ curso_id: cursoActivoId, titulo, descripcion, fecha_limite }]);
+
+        if (error) throw error;
+
+        document.getElementById("form-foro").reset();
+        await cargarForosCurso();
+        alert("¡Tema de discusión publicado con éxito!");
+
+    } catch (error) {
+        alert("Error al intentar registrar el foro debate: " + error.message);
+    }
+}
+
+window.eliminarForoDefinitivo = async function(idForo) {
+    if (!confirm("🚨 ADVERTENCIA: ¿Está seguro de que desea eliminar este foro? Al hacerlo se borrarán permanentemente las participaciones y respuestas de todos los estudiantes.")) return;
+
+    try {
+        const { error } = await supabase
+            .from('foros')
+            .delete()
+            .eq('id', idForo);
+
+        if (error) throw error;
+        await cargarForosCurso();
+        alert("El foro y sus respuestas asociadas han sido removidos con éxito.");
+    } catch (error) {
+        alert("Error al intentar remover el foro: " + error.message);
+    }
+}
+
+window.verRespuestasForo = async function(idForo, titulo, descripcion, fechaLimite) {
+    document.getElementById("modalRespuestasLabel").innerText = titulo;
+    document.getElementById("modal-foro-fecha").innerHTML = `<i class="bi bi-clock-history me-1"></i> Disponible hasta: <b>${fechaLimite}</b>`;
+    document.getElementById("modal-foro-descripcion").innerText = descripcion;
+
+    const contenedor = document.getElementById("contenedor-comentarios-foro");
+    contenedor.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div> Recuperando participaciones de alumnos...</div>`;
+
+    // Levantar el modal de Bootstrap de forma nativa
+    if (!modalForoInstance) {
+        modalForoInstance = new bootstrap.Modal(document.getElementById('modalRespuestasFlujo' || 'modalRespuestasForo'));
+    }
+    modalForoInstance.show();
+
+    try {
+        // Consultar respuestas del foro trayendo el autor (alumno)
+        const { data: comentarios, error } = await supabase
+            .from('foro_respuestas')
+            .select(`
+                id,
+                mensaje,
+                created_at,
+                perfiles!perfil_id (
+                    nombre_apellido,
+                    rol
+                )
+            `)
+            .eq('foro_id', idForo)
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        contenedor.innerHTML = "";
+
+        if (!comentarios || comentarios.length === 0) {
+            contenedor.innerHTML = `<div class="alert alert-light text-center border-dashed py-3 text-muted small"><i class="bi bi-chat-left-dots me-1"></i> Aún no se registran comentarios en este foro.</div>`;
+            return;
+        }
+
+        comentarios.forEach(com => {
+            const autor = com.perfiles;
+            const esDocenteOAdmin = autor && (autor.rol === 'docente' || autor.rol === 'admin');
+            
+            // Si el comentario lo hace el docente, se pinta con un color destacado
+            const fondoCaja = esDocenteOAdmin ? 'bg-primary-subtle border-primary-subtle text-dark' : 'bg-white border-light-subtle';
+            const badgeAutor = esDocenteOAdmin ? `<span class="badge bg-primary ms-1">Docente</span>` : '';
+            const fechaFormateada = new Date(com.created_at).toLocaleString();
+
+            const divMsg = document.createElement("div");
+            divMsg.className = `p-3 rounded border shadow-sm ${fondoCaja}`;
+            divMsg.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between mb-1 border-bottom pb-1">
+                    <span class="fw-bold small text-dark"><i class="bi bi-person-fill text-secondary me-1"></i>${autor ? autor.nombre_apellido : 'Usuario Externo'}${badgeAutor}</span>
+                    <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-clock me-1"></i>${fechaFormateada}</span>
+                </div>
+                <p class="mb-0 small text-secondary style-justify" style="white-space: pre-line;">${com.mensaje}</p>
+            `;
+            contenedor.appendChild(divMsg);
+        });
+
+    } catch (error) {
+        contenedor.innerHTML = `<div class="alert alert-danger small">Error al recuperar datos: ${error.message}</div>`;
+    }
+}
+
+window.cerrarModalForo = function() {
+    if (modalForoInstance) {
+        modalForoInstance.hide();
     }
 }
 
