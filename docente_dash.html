@@ -54,6 +54,11 @@
             <i class="bi bi-people-fill me-1"></i> Alumnos Matriculados
           </button>
         </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link fw-bold" id="tab-asistencias" onclick="window.cambiarSubVista('asistencias')">
+            <i class="bi bi-calendar-check me-1"></i> Control de Asistencia
+          </button>
+        </li>
       </ul>
 
       <div id="vista-recursos" class="">
@@ -94,8 +99,6 @@
             </div>
           </div>
 
-          
-          
           <div class="col-md-8 mb-4">
             <div class="card shadow-sm border-0">
               <div class="card-body">
@@ -120,43 +123,79 @@
         </div>
       </div>
 
-<div id="vista-alumnos" class="d-none">
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-            
-            <div class="row mb-3 justify-content-end">
-                <div class="col-md-5 col-sm-8">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light text-muted border-end-0">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text" 
-                               id="input-busqueda-alumno" 
-                               class="form-control border-start-0" 
-                               placeholder="Buscar por nombre o cédula..."
-                               onkeyup="filtrarAlumnosEnPantalla()">
-                    </div>
-                </div>
-            </div>
+      <div id="vista-alumnos" class="d-none">
+          <div class="card shadow-sm border-0">
+              <div class="card-body p-4">
+                  <div class="row mb-3 justify-content-end">
+                      <div class="col-md-5 col-sm-8">
+                          <div class="input-group">
+                              <span class="input-group-text bg-light text-muted border-end-0">
+                                  <i class="bi bi-search"></i>
+                              </span>
+                              <input type="text" 
+                                     id="input-busqueda-alumno" 
+                                     class="form-control border-start-0" 
+                                     placeholder="Buscar por nombre o cédula..."
+                                     onkeyup="filtrarAlumnosEnPantalla()">
+                          </div>
+                      </div>
+                  </div>
 
+                  <div class="table-responsive">
+                      <table class="table table-hover align-middle mb-0">
+                          <thead class="table-light text-secondary">
+                              <tr>
+                                  <th>Nombres y Apellidos</th>
+                                  <th>Cédula</th>
+                                  <th>Celular</th>
+                                  <th>Correo Electrónico</th>
+                              </tr>
+                          </thead>
+                          <tbody id="tabla-alumnos-body"></tbody>
+                      </table>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <div id="vista-asistencias" class="d-none">
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-white border-0 py-3 d-flex flex-wrap align-items-center justify-content-between">
+            <div>
+              <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-check me-2 text-primary"></i>Planilla Diario de Control</h5>
+              <small class="text-muted">Seleccione la fecha correspondiente para registrar la asistencia.</small>
+            </div>
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+              <input type="date" id="asistencia-fecha-filtro" class="form-control form-control-sm" style="width: 160px;">
+              <button class="btn btn-sm btn-outline-success fw-bold" id="btn-exportar-asistencias">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar Curso
+              </button>
+            </div>
+          </div>
+          
+          <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-secondary">
-                        <tr>
-                            <th>Nombres y Apellidos</th>
-                            <th>Cédula</th>
-                            <th>Celular</th>
-                            <th>Correo Electrónico</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-alumnos-body">
-                        </tbody>
-                </table>
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary">
+                  <tr>
+                    <th class="ps-4">Nombres y Apellidos</th>
+                    <th>Cédula</th>
+                    <th class="text-center">Estado Rápido (Asistió)</th>
+                    <th class="text-center">Novedad Detallada</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-asistencias-body"></tbody>
+              </table>
             </div>
-
+          </div>
+          
+          <div class="card-footer bg-white border-0 py-3 text-end">
+            <button class="btn btn-primary fw-bold px-4" id="btn-guardar-asistencia">
+              <i class="bi bi-cloud-arrow-up-fill me-1"></i> Guardar Asistencia del Día
+            </button>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
 
     </div>
 
