@@ -897,71 +897,129 @@ async function cerrarSesionDocente() {
 }
 
 // =========================================================================
-// RECURSO ACADÉMICO: EXPORTACIÓN DE CALIFICACIONES A FORMATO EXCEL (CSV)
+// RECURSO ACADÉMICO: EXPORTACIÓN DE CONSOLIDADO GENERAL DE CALIFICACIONES
 // =========================================================================
-window.exportarCalificacionesCSV = function() {
-    console.log("🚀 Ejecutando exportación de calificaciones..."); // Mensaje de control para tu consola
-
-    const tbody = document.getElementById("tabla-revision-entregas-body");
-    if (!tbody || tbody.rows.length === 0 || tbody.rows[0].cells[0].colSpan) {
-        alert("⚠️ No hay calificaciones disponibles para exportar en este momento.");
+window.exportarConsolidadoCalificacionesCSV = async function() {
+    // Verificar que exista un curso seleccionado activamente
+    if (!cursoActivoId) {
+        alert("⚠️ Por favor, selecciona un curso antes de exportar el consolidado de notas.");
         return;
     }
 
-    // 2. Extraer el nombre de la tarea en revisión desde el encabezado del modal para nombrar el archivo
-    const modalTitulo = document.getElementById("modalRevisionLabel");
-    let nombreTarea = modalTitulo ? modalTitulo.innerText.replace("Revisión de Entregas: ", "").trim() : "Calificaciones";
-    
-    // Limpiar caracteres extraños del nombre para evitar fallos de guardado en Windows/Mac
-    nombreTarea = nombreTarea.replace(/[/\\?%*:|"<>]/g, '-');
+    try {
+        // 1. Obtener todas las tareas programadas para este curso (Columnas dinámicas)
+        const { data: tareas, error: errTareas } = await supabase
+            .from('tareas')
+            .select('id, titulo, nota_maxima')
+            .eq('curso_id', cursoActivoId)
+            .order('created_at', { ascending: true });
 
-    // 3. Crear las cabeceras del archivo CSV (Encabezados de las columnas)
-    let contenidoCSV = "Estudiante;Estado en Aula;Comentario/Archivo Alumno;Calificación;Retroalimentación\r\n";
+        if (errTareas) throw errTareas;
 
-    // 4. Recorrer de forma secuencial cada fila de la tabla de calificaciones
-    for (let i = 0; i < tbody.rows.length; i++) {
-        const fila = tbody.rows[i];
-        
-        // Extraer el texto crudo de los campos fijos
-        const estudiante = fila.cells[0].innerText.trim();
-        const estadoAula = fila.cells[1].innerText.trim();
-        const notaConfirmacion = fila.cells[2].innerText.trim();
-        
-        // Capturar los valores dinámicos dentro de los elementos Input / Select
-        const inputNota = fila.cells[3].querySelector("input");
-        const notaValue = inputNota ? inputNota.value.trim() : "0";
-        
-        const textareaRetro = fila.cells[4].querySelector("textarea");
-        const retroValue = textareaRetro ? textareaRetro.value.trim() : "";
+        if (!tareas || tareas.length === 0) {
+            alert("⚠️ Este curso aún no registra tareas creadas para poder consolidar.");
+            return;
+        }
 
-        // Limpiar saltos de línea o comillas que puedan romper las columnas del CSV en Excel
-        const estudianteLimpio = estudiante.replace(/[\r\n;]/g, " ");
-        const estadoLimpio     = estadoAula.replace(/[\r\n;]/g, " ");
-        const notaConfLimpia    = notaConfirmacion.replace(/[\r\n;]/g, " ");
-        const retroLimpia      = retroValue.replace(/[\r\n;]/g, " ");
+        // 2. Obtener la nómina de estudiantes matriculados aprobados en este curso
+        const { data: inscripciones, error: errInsc } = await supabase
+            .from('inscripciones')
+            .select(`
+                perfil_id,
+                perfiles (
+                    id,
+                    nombre_apellido
+                )
+            `)
+            .eq('curso_id', cursoActivoId)
+            .eq('estado', 'aprobado');
 
-        // Concatenar la fila con delimitador punto y coma (Estándar latino para Excel)
-        contenidoCSV += `"${estudianteLimpio}";"${estadoLimpio}";"${notaConfLimpia}";"${notaValue}";"${retroLimpia}"\r\n`;
-    }
+        if (errInsc) throw errInsc;
 
-    // 5. Crear el objeto binario (Blob) con codificación especial para caracteres latinos (UTF-8 BOM)
-    // El prefijo \uFEFF obliga a Microsoft Excel a abrir el archivo leyendo correctamente tildes y eñes
-    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), contenidoCSV], { type: "text/csv;charset=utf-8;" });
-    
-    // 6. Generar el disparador de descarga automático e invisible en el navegador
-    const linkDescarga = document.createElement("a");
-    if (linkDescarga.download !== undefined) { 
-        // Crear un enlace temporal apuntando al archivo creado
-        const url = URL.createObjectURL(blob);
-        linkDescarga.setAttribute("href", url);
-        
-        // Estructurar el nombre final del archivo descargado (Ej: "Calificaciones - Tarea 1.csv")
-        linkDescarga.setAttribute("download", `Calificaciones - ${nombreTarea}.csv`);
-        linkDescarga.style.visibility = 'hidden';
-        
-        // Adjuntar, hacer clic y remover de la interfaz
-        document.body.appendChild(linkDescarga);
-        linkDescarga.click();
-        document.body.removeChild(linkDescarga);
+        if (!inscripciones || inscripciones.length === 0) {
+            alert("⚠️ No hay estudiantes matriculados y aprobados en este curso.");
+            return;
+        }
+
+        // Extraer y ordenar alfabéticamente a los alumnos por apellido/nombre
+        const listaEstudiantes = inscripciones
+            .map(ins => ins.perfiles)
+            .filter(p => p !== null)
+            .sort((a, b) => a.nombre_apellido.localeCompare(b.nombre_apellido));
+
+        // 3. Obtener TODAS las entregas/calificaciones existentes de este curso de forma masiva
+        const idTareasCurso = tareas.map(t => t.id);
+        const { data: entregas, error: errEntregas } = await supabase
+            .from('tarea_entregas')
+            .select('tarea_id, perfil_id, nota_asignada')
+            .in('tarea_id', idTareasCurso);
+
+        if (errEntregas) throw errEntregas;
+
+        // Mapear entregas en un diccionario indexado de doble llave [perfil_id][tarea_id] para acceso O(1) rápido
+        const mapaNotas = {};
+        if (entregas) {
+            entregas.forEach(ent => {
+                if (!mapaNotas[ent.perfil_id]) mapaNotas[ent.perfil_id] = {};
+                mapaNotas[ent.perfil_id][ent.tarea_id] = ent.nota_asignada;
+            });
+        }
+
+        // 4. Construir las cabeceras dinámicas del CSV
+        // Estructura: Estudiante ; Tarea 1 (Max 10) ; Tarea 2 (Max 10) ... ; PROMEDIO FINAL
+        let cabeceras = "Estudiante";
+        tareas.forEach(t => {
+            cabeceras += `;"${t.titulo} (Max ${t.nota_maxima})"`;
+        });
+        cabeceras += ";Promedio General\r\n";
+
+        let contenidoCSV = cabeceras;
+
+        // 5. Procesar fila por fila a cada alumno matriculado
+        listaEstudiantes.forEach(estudiante => {
+            let fila = `"${estudiante.nombre_apellido}"`;
+            let sumaNotas = 0;
+            let totalTareas = tareas.length;
+
+            tareas.forEach(t => {
+                // Verificar si el alumno tiene nota en esta tarea específica, sino asignar 0 (Pendiente)
+                const nota = (mapaNotas[estudiante.id] && mapaNotas[estudiante.id][t.id] !== undefined && mapaNotas[estudiante.id][t.id] !== null)
+                    ? mapaNotas[estudiante.id][t.id] 
+                    : 0;
+                
+                fila += `;${nota.toFixed(2)}`;
+                sumaNotas += nota;
+            });
+
+            // Calcular promedio aritmético simple de la fila
+            const promedio = totalTareas > 0 ? (sumaNotas / totalTareas) : 0;
+            fila += `;${promedio.toFixed(2)}\r\n`;
+
+            contenidoCSV += fila;
+        });
+
+        // 6. Obtener el nombre del curso del DOM para bautizar el archivo descargado
+        const selectCurso = document.getElementById("select-curso"); // Asegúrate que este sea el ID de tu selector de cursos de profesor
+        const nombreCurso = selectCurso ? selectCurso.options[selectCurso.selectedIndex].text : "Curso";
+        const nombreArchivoLimpio = nombreCurso.replace(/[/\\?%*:|"<>]/g, '-').trim();
+
+        // 7. Empaquetar binario e inyectar el BOM UTF-8 (\uFEFF) para garantizar total compatibilidad con Excel
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), contenidoCSV], { type: "text/csv;charset=utf-8;" });
+        const linkDescarga = document.createElement("a");
+
+        if (linkDescarga.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            linkDescarga.setAttribute("href", url);
+            linkDescarga.setAttribute("download", `Consolidado_Notas_${nombreArchivoLimpio}.csv`);
+            linkDescarga.style.visibility = 'hidden';
+            
+            document.body.appendChild(linkDescarga);
+            linkDescarga.click();
+            document.body.removeChild(linkDescarga);
+        }
+
+    } catch (error) {
+        console.error("Error en la consolidación de calificaciones:", error.message);
+        alert("❌ Error al consolidar el archivo centralizado: " + error.message);
     }
 };
