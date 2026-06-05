@@ -164,6 +164,11 @@
             <div class="d-flex gap-2">
               <input type="date" id="asistencia-fecha-filtro" class="form-control form-control-sm" style="width: 160px;">
               <button class="btn btn-sm btn-outline-success fw-bold" id="btn-exportar-asistencias">Exportar CSV</button>
+
+              <button type="button" class="btn btn-sm btn-success fw-bold" id="btn-exportar-consolidado" onclick="window.exportarConsolidadoCalificacionesCSV()">
+                <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Exportar Consolidado de Notas
+              </button>
+
             </div>
           </div>
           <div class="card-body p-0">
@@ -337,10 +342,6 @@
         </div>
 
   <div class="modal-footer bg-white">
-          <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-sm" id="btn-exportar-consolidado" onclick="window.exportarConsolidadoCalificacionesCSV()">
-            <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Exportar Consolidado de Notas (CSV)
-          </button>
-
           <button type="button" class="btn btn-sm btn-primary fw-bold px-4" id="btn-guardar-calificaciones" onclick="window.guardarNotasTareas()">
             <i class="bi bi-cloud-check-fill me-1"></i> Sincronizar Calificaciones
           </button>
