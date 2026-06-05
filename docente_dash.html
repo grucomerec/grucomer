@@ -191,20 +191,21 @@
               <div class="card-header bg-dark text-white fw-bold py-2">
                 <i class="bi bi-chat-right-quote me-1"></i> Aperturar Foro
               </div>
-              <div class="card-body">
-                <form id="form-foro">
-                  <div class="mb-3">
-                    <label class="form-label small fw-semibold">Título:</label>
-                    <input type="text" id="tarea-titulo" class="form-control form-control-sm" placeholder="Ej: Circuitos Eléctricos" required>
-                    <input type="text" id="foro-titulo" class="form-control form-control-sm" required>
+<div class="modal-body p-4">
+  <form id="form-foro">
+    
+    <div class="mb-3">
+      <label for="foro-tema" class="form-label fw-bold small text-secondary">Tema de Discusión / Debate:</label>
+      <input type="text" class="form-control form-control-sm" id="foro-tema" placeholder="Ej: Análisis Crítico de los Esquemas de Conexión a Tierra (TN, TT, IT)" required>
+    </div>
 
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label small fw-semibold">Planteamiento:</label>
-                    <input type="text" id="tarea-titulo" class="form-control form-control-sm" placeholder="Ej: ¿Hable sobre los tipos circuitos?" required>
-                    <textarea id="foro-descripcion" class="form-control form-control-sm" rows="3" required></textarea>
-                  </div>
-                  <div class="mb-3">
+    <div class="mb-3">
+      <label for="foro-mensaje" class="form-label fw-bold small text-secondary">Planteamiento / Pregunta Detallada:</label>
+      <textarea class="form-control form-control-sm" id="foro-mensaje" rows="4" placeholder="Describa el contexto, las pautas de participación y las preguntas guía para sus estudiantes..." required></textarea>
+    </div>
+
+  </form>
+</div>
                     <label class="form-label small fw-semibold">Fecha Límite:</label>
                     <input type="date" id="foro-fecha-limite" class="form-control form-control-sm" required>
                   </div>
