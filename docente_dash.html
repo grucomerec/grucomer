@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>👨‍🏫 Aula Virtual - Panel del Docente</title>
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body class="bg-light">
 
+<body class="bg-light">
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid px-4">
       <a class="navbar-brand fw-bold text-primary" href="#">🎓 Grucomer <span class="text-white">Edu</span></a>
@@ -22,266 +23,307 @@
       </div>
     </div>
   </nav>
-
-  <div class="container-fluid py-4 px-4">
-    <div class="row g-4">
-      
-      <div class="col-12 col-lg-3">
-        <div class="card border-0 shadow-sm mb-4">
-          <div class="card-body p-4">
-            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-journal-bookmark-fill me-2"></i>Asignatura Activa</h6>
-            <select class="form-select form-select-sm fw-medium text-dark" id="select-curso">
-              <option value="" selected disabled>Cargando cursos asignados...</option>
+  <div class="container py-4">  
+    <div class="row mb-4">
+      <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0">
+          <div class="card-body bg-white rounded">
+            <label for="select-curso-docente" class="form-label fw-bold text-secondary text-uppercase small">
+              <i class="bi bi-journal-bookmark-fill me-1"></i> Selecciona tu Curso / Paralelo:
+            </label>
+            <select class="form-select" id="select-curso-docente" onchange="window.cambiarCursoActivo(this.value)">
+              <option value="">-- Cargando cursos asignados --</option>
             </select>
           </div>
         </div>
       </div>
-
-      <div class="col-12 col-lg-9">
-        
-        <ul class="nav nav-tabs border-0 gap-2" id="docenteTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold px-4 rounded-top shadow-sm" id="tab-asistencia" data-bs-toggle="tab" data-bs-target="#nav-asistencia" type="button" role="tab">
-              <i class="bi bi-calendar-check me-2"></i>Control de Asistencia
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold px-4 rounded-top shadow-sm" id="tab-tareas" data-bs-toggle="tab" data-bs-target="#nav-tareas" type="button" role="tab">
-              <i class="bi bi-journal-text me-2"></i>Tareas y Calificaciones
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold px-4 rounded-top shadow-sm" id="tab-foros" data-bs-toggle="tab" data-bs-target="#nav-foros" type="button" role="tab">
-              <i class="bi bi-chat-square-quote me-2"></i>Foros de Debate
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold px-4 rounded-top shadow-sm" id="tab-recursos" data-bs-toggle="tab" data-bs-target="#nav-recursos" type="button" role="tab">
-              <i class="bi bi-cloud-arrow-up me-2"></i>Material Didáctico
-            </button>
-          </li>
-        </ul>
-
-        <div class="tab-content bg-white p-4 rounded-bottom shadow-sm border" id="docenteTabsContent">
-          
-          <div class="tab-pane fade show active" id="nav-asistencia" role="tabpanel">
-            <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-4 pt-2">
-              <div class="d-flex align-items-center gap-2">
-                <label for="asistencia-fecha-filtro" class="form-label fw-bold text-secondary mb-0 small">Fecha Planilla:</label>
-                <input type="date" id="asistencia-fecha-filtro" class="form-control form-control-sm" style="width: 160px;">
+    </div>
+    <div id="zona-trabajo-docente" class="d-none">  
+      <ul class="nav nav-tabs mb-4" id="pestañasCurso" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active fw-bold" id="tab-recursos" onclick="window.cambiarSubVista('recursos')">
+            <i class="bi bi-folder-symlink me-1"></i> Recursos Académicos
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-alumnos" onclick="window.cambiarSubVista('alumnos')">
+            <i class="bi bi-people-fill me-1"></i> Alumnos Matriculados
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-asistencias" onclick="window.cambiarSubVista('asistencias')">
+            <i class="bi bi-calendar-check me-1"></i> Control de Asistencia
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-foros" onclick="window.cambiarSubVista('foros')">
+            <i class="bi bi-chat-square-text-fill me-1"></i> Foros de Debate
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-tareas" onclick="window.cambiarSubVista('tareas')">
+            <i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Tareas y Calificaciones
+          </button>
+        </li>
+      </ul>
+      <div id="vista-recursos" class="">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-primary text-white fw-bold py-2">
+                <i class="bi bi-plus-circle me-1"></i> Añadir Recurso
               </div>
-              <button class="btn btn-sm btn-outline-success fw-bold px-3" onclick="window.exportarAsistenciasCSV()">
-                <i class="bi bi-file-earmark-excel me-1"></i> Exportar Asistencias
-              </button>
-            </div>
-            
-            <div class="table-responsive">
-              <table class="table table-hover align-middle border mb-0">
-                <thead class="table-light text-secondary small text-uppercase">
-                  <tr>
-                    <th style="width: 60%;">Estudiante</th>
-                    <th style="width: 40%;" class="text-center">Estado de Asistencia</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-asistencia-body"></tbody>
-              </table>
-            </div>
-            <div class="text-end mt-4">
-              <button class="btn btn-sm btn-primary fw-bold px-4 shadow-sm" id="btn-guardar-asistencia" onclick="window.guardarAsistenciaPlanilla()">
-                <i class="bi bi-cloud-check-fill me-1"></i> Guardar Registro Diario
-              </button>
+              <div class="card-body">
+                <form id="form-recurso">
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Título del Material:</label>
+                    <input type="text" id="rec-titulo" class="form-control form-control-sm" placeholder="Ej: Diapositivas - Clase Introductoria" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Enlace / URL (Drive, Zoom, Mega):</label>
+                    <input type="url" id="rec-url" class="form-control form-control-sm" placeholder="https://..." required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Semana correspondiente:</label>
+                    <select id="rec-semana" class="form-select form-select-sm" required>
+                      <option value="1">Semana 1</option>
+                      <option value="2">Semana 2</option>
+                      <option value="3">Semana 3</option>
+                      <option value="4">Semana 4</option>
+                    </select>
+                  </div>
+                  <div class="mb-3 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="rec-visible" checked>
+                    <label class="form-check-label small fw-semibold" for="rec-visible">Visible para estudiantes</label>
+                  </div>
+                  <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold">
+                    <i class="bi bi-cloud-upload"></i> Publicar Recurso
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
-
-          <div class="tab-pane fade" id="nav-tareas" role="tabpanel">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 pt-2">
-              <div>
-                <h5 class="fw-bold text-dark mb-1"><i class="bi bi-journal-check text-primary me-2"></i>Gestión de Tareas Académicas</h5>
-                <p class="text-muted small mb-0">Asigne nuevas tareas o descargue el rendimiento consolidado del curso actual.</p>
+          <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+                <h5 class="fw-bold text-dark border-bottom pb-2">Materiales Publicados</h5>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-light text-secondary small text-uppercase">
+                      <tr>
+                        <th style="width: 15%;">Semana</th>
+                        <th style="width: 40%;">Recurso / Título</th>
+                        <th style="width: 20%;">Enlace</th>
+                        <th style="width: 15%;">Estado</th>
+                        <th style="width: 10%;" class="text-end">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabla-recursos-body"></tbody>
+                  </table>
+                </div>
               </div>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-sm" id="btn-exportar-consolidado" onclick="window.exportarConsolidadoCalificacionesCSV()">
-                  <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Exportar Consolidado de Notas
-                </button>
-                <button type="button" class="btn btn-sm btn-primary fw-bold px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearTarea">
-                  <i class="bi bi-plus-circle-fill me-1"></i> Crear Nueva Tarea
-                </button>
-              </div>
-            </div>
-
-            <div class="table-responsive">
-              <table class="table table-hover align-middle border mb-0">
-                <thead class="table-light text-secondary small text-uppercase">
-                  <tr>
-                    <th style="width: 35%;">Título / Detalle</th>
-                    <th style="width: 20%;">Fecha Límite</th>
-                    <th style="width: 15%;">Nota Max.</th>
-                    <th style="width: 30%;" class="text-end">Acción Calificadora</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-tareas-body"></tbody>
-              </table>
             </div>
           </div>
-
-          <div class="tab-pane fade" id="nav-foros" role="tabpanel">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 pt-2">
-              <div>
-                <h5 class="fw-bold text-dark mb-1"><i class="bi bi-chat-left-quote text-primary me-2"></i>Foros de Discusión Colectiva</h5>
-                <p class="text-muted small mb-0">Monitoree e interactúe en los debates activos configurados en la asignatura.</p>
+        </div>
+      </div>
+      <div id="vista-alumnos" class="d-none">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+            <div class="row mb-3 justify-content-end">
+              <div class="col-md-5 col-sm-8">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted border-end-0">
+                    <i class="bi bi-search"></i>
+                  </span>
+                  <input type="text" id="input-busqueda-alumno" class="form-control border-start-0" placeholder="Buscar por nombre o cédula..." onkeyup="filtrarAlumnosEnPantalla()">
+                </div>
               </div>
-              <button type="button" class="btn btn-sm btn-primary fw-bold px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearForo">
-                <i class="bi bi-plus-circle-fill me-1"></i> Aperturar Foro
-              </button>
             </div>
-
             <div class="table-responsive">
-              <table class="table table-hover align-middle border mb-0">
-                <thead class="table-light text-secondary small text-uppercase">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary">
                   <tr>
-                    <th style="width: 50%;">Tema de Debate</th>
-                    <th style="width: 25%;">Fecha Apertura</th>
-                    <th style="width: 25%;" class="text-end">Interacción</th>
+                    <th>Nombres y Apellidos</th>
+                    <th>Cédula</th>
+                    <th>Celular</th>
+                    <th>Correo Electrónico</th>
                   </tr>
                 </thead>
-                <tbody id="tabla-foros-body"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="tab-pane fade" id="nav-recursos" role="tabpanel">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 pt-2">
-              <div>
-                <h5 class="fw-bold text-dark mb-1"><i class="bi bi-cloud-arrow-up text-primary me-2"></i>Repositorio de Material Didáctico</h5>
-                <p class="text-muted small mb-0">Suba guías de estudio, diapositivas o enlaces de interés organizados por semanas.</p>
-              </div>
-              <button type="button" class="btn btn-sm btn-primary fw-bold px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearRecurso">
-                <i class="bi bi-plus-circle-fill me-1"></i> Compartir Material
-              </button>
-            </div>
-
-            <div class="table-responsive">
-              <table class="table table-hover align-middle border mb-0">
-                <thead class="table-light text-secondary small text-uppercase">
-                  <tr>
-                    <th style="width: 20%;">Semana</th>
-                    <th style="width: 55%;">Descripción del Material</th>
-                    <th style="width: 25%;" class="text-end">Enlace de Destino</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-recursos-body"></tbody>
+                <tbody id="tabla-alumnos-body"></tbody>
               </table>
             </div>
           </div>
+        </div>
+      </div>
+      <div id="vista-asistencias" class="d-none">
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header bg-white border-0 py-3 d-flex flex-wrap align-items-center justify-content-between">
+            <div>
+              <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-check me-2 text-primary"></i>Control de Asistencia</h5>
+            </div>
+            <div class="d-flex gap-2">
+              <input type="date" id="asistencia-fecha-filtro" class="form-control form-control-sm" style="width: 160px;">
+              <button class="btn btn-sm btn-outline-success fw-bold" id="btn-exportar-asistencias">Exportar</button>             
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-secondary">
+                <tr>
+                  <th class="ps-4">Estudiante</th>
+                  <th>Cédula</th>
+                  <th class="text-center">Asistió</th>
+                  <th class="text-center">Novedad</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-asistencias-body"></tbody>
+            </table>
+          </div>
+          <div class="card-footer bg-white text-end py-3">
+            <button class="btn btn-primary btn-sm fw-bold px-4" id="btn-guardar-asistencia">Guardar Asistencia</button>
+          </div>
+        </div>
+      </div>
+      <div id="vista-foros" class="d-none">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-dark text-white fw-bold py-2">
+                <i class="bi bi-chat-right-quote me-1"></i> Aperturar Foro
+              </div>
+              <div class="card-body">
+                <form id="form-foro">
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Título:</label>
+                    <input type="text" id="foro-titulo" class="form-control form-control-sm" required>
 
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Planteamiento:</label>
+                    <textarea id="foro-descripcion" class="form-control form-control-sm" rows="3" required></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Fecha Límite:</label>
+                    <input type="date" id="foro-fecha-limite" class="form-control form-control-sm" required>
+                  </div>
+                  <button type="submit" class="btn btn-sm btn-dark w-100 fw-bold">Publicar Foro</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+                <h5 class="fw-bold text-dark border-bottom pb-2">Hilos de Discusión</h5>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-light text-secondary small text-uppercase">
+                      <tr>
+                        <th>Foro</th>
+                        <th>Fecha Límite</th>
+                        <th class="text-end">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabla-foros-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="vista-tareas" class="d-none">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-success text-white fw-bold py-2">
+                <i class="bi bi-file-earmark-plus me-1"></i> Asignar Nueva Tarea
+              </div>
+              <div class="card-body">
+                <form id="form-tarea">
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Título de la Tarea:</label>
+                    <input type="text" id="tarea-titulo" class="form-control form-control-sm" placeholder="Ej: Laboratorio de Circuitos 1" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold">Instrucciones / Rúbrica:</label>
+                    <textarea id="tarea-descripcion" class="form-control form-control-sm" rows="3" placeholder="Describe los requisitos de la entrega..." required></textarea>
+                  </div>
+                  <div class="row">
+                    <div class="col-6 mb-3">
+                      <label class="form-label small fw-semibold">Nota Máxima:</label>
+                      <input type="number" id="tarea-nota-max" class="form-control form-control-sm" value="10" min="1" max="100" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                      <label class="form-label small fw-semibold">Fecha Límite:</label>
+                      <input type="date" id="tarea-fecha-limite" class="form-control form-control-sm" required>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-sm btn-success w-100 fw-bold">
+                    <i class="bi bi-send-check"></i> Subir Tarea
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-body">
+                <h5 class="fw-bold text-dark border-bottom pb-2">Tareas Enviadas al Curso</h5>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="table-light text-secondary small text-uppercase">
+                      <tr>
+                        <th>Actividad</th>
+                        <th>Fecha de Cierre</th>
+                        <th class="text-end">Acciones</th>
+                      </tr>
+                      <button type="button" class="btn btn-sm btn-success fw-bold" id="btn-exportar-consolidado" onclick="window.exportarConsolidadoCalificacionesCSV()">
+                        <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Exportar Calificaciones
+                      </button>
+                    </thead>
+                    <tbody id="tabla-tareas-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="mensaje-espera-curso" class="text-center py-5 text-muted">
+      <i class="bi bi-arrow-up-circle display-4 text-secondary"></i>
+      <p class="mt-2 fw-semibold">Por favor, selecciona un curso del menú superior para administrar los módulos académicos.</p>
+    </div>
+  </div>
+  <div class="modal fade" id="modalRespuestasForo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="modalRespuestasLabel">Respuestas del Foro</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="window.cerrarModalForo()"></button>
+        </div>
+        <div class="modal-body bg-light">
+          <div class="p-3 bg-white rounded border mb-3">
+            <h6 class="fw-bold text-primary">Planteamiento:</h6>
+            <p id="modal-foro-descripcion" class="small text-muted mb-0"></p>
+          </div>
+          <div id="contenedor-comentarios-foro" class="d-flex flex-column gap-2"></div>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="modal fade" id="modalCrearTarea" tabindex="-1" aria-labelledby="modalCrearTareaLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-dark text-white">
-          <h6 class="modal-title fw-bold" id="modalCrearTareaLabel"><i class="bi bi-journal-plus me-2"></i>Configurar Nueva Asignación</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <form id="form-tarea">
-            <div class="mb-3">
-              <label for="tarea-titulo" class="form-label fw-bold small text-secondary">Título de la Tarea:</label>
-              <input type="text" class="form-control form-control-sm" id="tarea-titulo" placeholder="Ej: Informe Técnico N°1" required>
-            </div>
-            <div class="mb-3">
-              <label for="tarea-descripcion" class="form-label fw-bold small text-secondary">Instrucciones / Descripción:</label>
-              <textarea class="form-control form-control-sm" id="tarea-descripcion" rows="3" placeholder="Detalle los requisitos y pautas de la tarea..." required></textarea>
-            </div>
-            <div class="row">
-              <div class="col-6 mb-3">
-                <label for="tarea-fecha" class="form-label fw-bold small text-secondary">Fecha de Entrega:</label>
-                <input type="date" class="form-control form-control-sm" id="tarea-fecha" required>
-              </div>
-              <div class="col-6 mb-3">
-                <label for="tarea-nota" class="form-label fw-bold small text-secondary">Nota Máxima:</label>
-                <input type="number" class="form-control form-control-sm" id="tarea-nota" value="10" min="1" max="100" required>
-              </div>
-            </div>
-            <div class="text-end pt-2">
-              <button type="button" class="btn btn-sm btn-secondary me-1" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold">Publicar Asignación</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="modalCrearForo" tabindex="-1" aria-labelledby="modalCrearForoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-dark text-white">
-          <h6 class="modal-title fw-bold" id="modalCrearForoLabel"><i class="bi bi-chat-right-text me-2"></i>Aperturar Foro de Discusión</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <form id="form-foro">
-            <div class="mb-3">
-              <label for="foro-tema" class="form-label fw-bold small text-secondary">Tema de Discusión / Debate:</label>
-              <input type="text" class="form-control form-control-sm" id="foro-tema" placeholder="Ej: Análisis de Sistemas de Aislamiento IT" required>
-            </div>
-            <div class="mb-3">
-              <label for="foro-mensaje" class="form-label fw-bold small text-secondary">Planteamiento / Pregunta Detallada:</label>
-              <textarea class="form-control form-control-sm" id="foro-mensaje" rows="4" placeholder="Describa las pautas de participación y las preguntas guía..." required></textarea>
-            </div>
-            <div class="text-end pt-2">
-              <button type="button" class="btn btn-sm btn-secondary me-1" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold">Publicar Foro</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="modalCrearRecurso" tabindex="-1" aria-labelledby="modalCrearRecursoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-dark text-white">
-          <h6 class="modal-title fw-bold" id="modalCrearRecursoLabel"><i class="bi bi-cloud-plus me-2"></i>Subir Material o Enlace</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <form id="form-recurso">
-            <div class="mb-3">
-              <label for="recurso-semana" class="form-label fw-bold small text-secondary">Semana Correspondiente:</label>
-              <input type="number" class="form-control form-control-sm" id="recurso-semana" placeholder="Ej: 1" min="1" max="24" required>
-            </div>
-            <div class="mb-3">
-              <label for="recurso-titulo" class="form-label fw-bold small text-secondary">Descripción del Recurso:</label>
-              <input type="text" class="form-control form-control-sm" id="recurso-titulo" placeholder="Ej: Diapositivas sobre Conexiones TN-S" required>
-            </div>
-            <div class="mb-3">
-              <label for="recurso-url" class="form-label fw-bold small text-secondary">Enlace URL del Material (Drive / Enlace Externo):</label>
-              <input type="url" class="form-control form-control-sm" id="recurso-url" placeholder="https://drive.google.com/..." required>
-            </div>
-            <div class="text-end pt-2">
-              <button type="button" class="btn btn-sm btn-secondary me-1" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold">Publicar Material</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="modalRevisionEntregas" tabindex="-1" aria-labelledby="modalRevisionLabel" aria-hidden="true">
+  <div class="modal fade" id="modalRevisionTareas" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
-      <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-dark text-white">
-          <h6 class="modal-title fw-bold" id="modalRevisionLabel"><i class="bi bi-card-checklist me-2"></i>Calificación Integral de Alumnos</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="window.cerrarModalRevision()"></button>
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <div>
+            <h5 class="modal-title fw-bold text-dark" id="modalRevisionLabel">Calificación de Entregas</h5>
+            <span class="text-muted small">Verifica los envíos en tu Google Drive y registra las notas correspondientes aquí.</span>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="window.cerrarModalRevision()"></button>
         </div>
-        <div class="modal-body p-4 bg-light">
+        <div class="modal-body bg-light-subtle">
           <div class="table-responsive">
             <table class="table table-bordered bg-white align-middle shadow-sm mb-0">
               <thead class="table-light text-secondary small text-uppercase">
@@ -297,14 +339,22 @@
             </table>
           </div>
         </div>
-        <div class="modal-footer bg-white">
+
+  <div class="modal-footer bg-white">
+          <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-sm" id="btn-exportar-consolidado" onclick="window.exportarConsolidadoCalificacionesCSV()">
+            <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Exportar Consolidado de Notas (CSV)
+          </button>
+
           <button type="button" class="btn btn-sm btn-primary fw-bold px-4" id="btn-guardar-calificaciones" onclick="window.guardarNotasTareas()">
             <i class="bi bi-cloud-check-fill me-1"></i> Sincronizar Calificaciones
           </button>
           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" onclick="window.cerrarModalRevision()">Cerrar</button>
         </div>
+
       </div>
+
     </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
