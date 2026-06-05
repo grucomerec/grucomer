@@ -277,9 +277,9 @@
                         <th>Fecha de Cierre</th>
                         <th class="text-end">Acciones</th>
                       </tr>
-                      <button class="btn btn-sm btn-outline-success fw-bold" onclick="window.exportarAsistenciasCSV()">
-            <i class="bi bi-file-earmark-excel"></i> Exportar Asistencias
-        </button>
+                      <button type="button" class="btn btn-sm btn-success fw-bold" id="btn-exportar-consolidado" onclick="window.exportarConsolidadoCalificacionesCSV()">
+                        <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Exportar Consolidado de Notas
+                      </button>
                     </thead>
                     <tbody id="tabla-tareas-body"></tbody>
                   </table>
