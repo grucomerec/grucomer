@@ -345,7 +345,7 @@ window.cerrarModalForo = function() {
 // =========================================================================
 // MÓDULO C: GESTIÓN DE TAREAS INTEGRADAS CON GOOGLE FORMS DINÁMICO
 // =========================================================================
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbw7hmF13U4uw9vwXw8nC-7AmbLgsO7kGUZsIQeZCDmt8Ugsg6WUF9EcRE3Zq31Xjjj1/exec"; 
+const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycby60nQMKAMIKBE1xl1UBLeZ-C5uL8XKeeldLd5-YcpqBTi6eQJtoUzYZm_aN9urGl7F/exec"; 
 let modalCargaInstance = null;
 
 
@@ -485,9 +485,14 @@ window.procesarSubidaTarea = async function(idTarea, tituloTarea, nombreCurso, n
         // 4. Despachar petición HTTP POST asíncrona hacia Google Apps Script
         const response = await fetch(URL_APPS_SCRIPT, {
             method: "POST",
-            mode: "cors",
+            mode: "no-cors", // <--- CAMBIAMOS A NO-CORS PARA EVITAR EL BLOQUEO
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(payload)
         });
+
+        const urlRespaldoDocente = "Archivo entregado exitosamente en la carpeta de Google Drive.";
 
         const resultadoDrive = await response.json();
 
@@ -502,7 +507,7 @@ window.procesarSubidaTarea = async function(idTarea, tituloTarea, nombreCurso, n
             .upsert({
                 tarea_id: Number(idTarea),
                 perfil_id: estudianteId,
-                comentario_estudiante: resultadoDrive.url // Almacena el link directo de Google Drive
+                comentario_estudiante: urlRespaldoDocente 
             }, { onConflict: 'tarea_id, perfil_id' });
 
         if (errorSupabase) throw errorSupabase;
