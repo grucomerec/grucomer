@@ -93,6 +93,47 @@
               </div>
             </div>
           </div>
+
+          <div class="card shadow-sm border-0 mb-4 card-asistencias-modulo d-none" id="modulo-asistencias">
+  <div class="card-header bg-white border-0 py-3 d-flex flex-wrap align-items-center justify-content-between">
+    <div>
+      <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-calendar-check me-2 text-primary"></i>Control de Asistencias Diario</h5>
+      <small class="text-muted">Cursos intensivos de una semana</small>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <input type="date" id="asistencia-fecha-filtro" class="form-control form-control-sm" style="width: 160px;">
+      <button class="btn btn-sm btn-outline-success fw-bold" id="btn-exportar-asistencias" disabled>
+        <i class="bi bi-file-earmark-excel me-1"></i> Exportar Curso
+      </button>
+    </div>
+  </div>
+  
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0" id="tabla-asistencias">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Estudiante</th>
+            <th>Cédula</th>
+            <th class="text-center">Asistencia Diario (Marcar si asistió)</th>
+            <th class="text-center">Novedad Especial</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-asistencias-body">
+          <tr>
+            <td colspan="4" class="text-center py-4 text-muted">Selecciona un curso válido para cargar la planilla de asistencia.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <div class="card-footer bg-white border-0 py-3 text-end">
+    <button class="btn btn-primary fw-bold" id="btn-guardar-asistencia" disabled>
+      <i class="bi bi-cloud-arrow-up-fill me-1"></i> Guardar Asistencia del Día
+    </button>
+  </div>
+</div>
           
           <div class="col-md-8 mb-4">
             <div class="card shadow-sm border-0">
