@@ -1,6 +1,44 @@
 // js/registro.js
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // ==========================================
+  // 🔑 LÓGICA DE PROTECCIÓN POR CLAVE DE ACCESO
+  // ==========================================
+  const CLAVE_ACCESO = "Estudiante2026"; // 👈 Cambia aquí tu clave deseada
+
+  const modalElement = document.getElementById("modalClave");
+  const modalClave = new bootstrap.Modal(modalElement);
+  const contenidoPrincipal = document.getElementById("contenido-principal");
+  
+  const inputClave = document.getElementById("input-clave");
+  const btnValidar = document.getElementById("btn-validar-clave");
+  const errorClave = document.getElementById("error-clave");
+
+  // Desplegar el modal inmediatamente al cargar la página
+  modalClave.show();
+
+  btnValidar.addEventListener("click", verificarClave);
+  inputClave.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") verificarClave();
+  });
+
+  function verificarClave() {
+    const claveIngresada = inputClave.value.trim();
+
+    if (claveIngresada === CLAVE_ACCESO) {
+      modalClave.hide();
+      contenidoPrincipal.classList.remove("blur-content");
+      inputClave.classList.remove("is-invalid");
+    } else {
+      inputClave.classList.add("is-invalid");
+      errorClave.style.display = "block";
+      inputClave.focus();
+    }
+  }
+
+  // ==========================================
+  // 📚 LÓGICA EXISTENTE CON SUPABASE
+  // ==========================================
   const selectCurso = document.getElementById("reg-curso");
   const formRegistro = document.getElementById("form-registro");
   const btnEnviar = document.getElementById("btn-enviar");
